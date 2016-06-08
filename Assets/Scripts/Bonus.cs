@@ -1,29 +1,32 @@
 ﻿using UnityEngine;
+using System.Collections;
 
 public class Bonus : MonoBehaviour
 {
-	private Game _game;
-	private Collider _collider;
+	Game _game;
+	Collider _collider;
 
-	void Awake()
+	void Start()
 	{
 		_game = FindObjectOfType<Game>();
+
 		_collider = GetComponent<Collider>();
 		_collider.isTrigger = true;
-    }
+	}
 
-	void Update()
+	// Update is called once per frame
+	void Update ()
 	{
-		transform.Rotate(transform.up, 540.0f * Time.deltaTime);
+		transform.Rotate(transform.up, 360.0f * Time.deltaTime);
 	}
 
 	void OnTriggerEnter(Collider other)
 	{
 		if(other.tag == "Player")
 		{
-			//Debug.Log("Player Enter");
-			GameObject.Destroy(this.gameObject);
-			_game.UpdateScore();
+			//Debug.Log("Player Enter !");
+			_game.BonusCatched();
+			gameObject.SetActive(false);
 		}
 	}
 
@@ -31,7 +34,7 @@ public class Bonus : MonoBehaviour
 	//{
 	//	if (other.tag == "Player")
 	//	{
-	//		Debug.Log("Player Exit");
+	//		Debug.Log("Player Exit !");
 	//	}
 	//}
 }

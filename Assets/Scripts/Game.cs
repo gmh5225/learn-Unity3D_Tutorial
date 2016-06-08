@@ -1,60 +1,49 @@
 ﻿using UnityEngine;
+using System.Collections;
 
-public class Game : MonoBehaviour
-{
+public class Game : MonoBehaviour {
+
 	public int nbBonus = 10;
-	public GameObject bonusPrefab;
+	public Terrain Terrain;
+	public GameObject BonusPrefab;
+	public UnityEngine.UI.Text info;
 
-	private Terrain _terrain;
-	private int _bonusLeft;
-	private UnityEngine.UI.Text _uiText;
-	private bool _gameFinished;
-
-	// public float Speed { get; set; } // Acces que dans le code
-
-	public void UpdateScore()
-	{
-		string msg = string.Format("Bonus : {0} / {1}", --_bonusLeft, nbBonus);
-		Debug.Log(msg);
-		_uiText.text = msg;
-    }
-
-	void Awake()
-	{
-		_gameFinished = false;
-		_bonusLeft = nbBonus;
-
-		_uiText = GetComponentInChildren<UnityEngine.UI.Text>();
-		_uiText.text = string.Format("Bonus : {0} / {1}", _bonusLeft, nbBonus);
-
-		_terrain = FindObjectOfType<Terrain>();
-
-		Vector3 terrainPos = _terrain.transform.position;
-		Vector3 pos = Vector3.zero;
-		for(int i=0; i < nbBonus; ++i)
-		{
-			pos.x = Random.Range(terrainPos.x + 1.0f, terrainPos.x + _terrain.terrainData.size.x - 1.0f);
-			pos.z = Random.Range(terrainPos.z + 1.0f, terrainPos.z +_terrain.terrainData.size.z - 1.0f);
-			pos.y = 0.0f;
-			pos.y = _terrain.SampleHeight(pos) + 1.0f;
-
-			GameObject.Instantiate(bonusPrefab, pos, Quaternion.identity);
-		}
-    }
+	int nbBonusLeft;
 	
 	// Update is called once per frame
-	void Update ()
+	void Start()
 	{
-		if (Input.GetKeyUp(KeyCode.Escape))
-		{
-			Application.Quit();
-		}
+		nbBonusLeft = nbBonus;
+		//Debug.Log("Bonus left : " + nbBonusLeft);
+		info.text = "Bonus left : " + nbBonusLeft;
 
-		if ( (!_gameFinished) && (_bonusLeft < 1) )
+		// Create Bonus all over the Terrain.
+		Vector3 terrainPos = Terrain.transform.position;
+		Vector3 bonusPos;
+		for(int i=0; i < nbBonus; ++i)
 		{
-			Debug.Log("Game Finished !");
-			_uiText.text = "Game Finished !";
-			_gameFinished = true;
+			bonusPos.x = Random.Range(terrainPos.x + 1.0f, terrainPos.x + Terrain.terrainData.size.x - 1.0f);
+			bonusPos.z = Random.Range(terrainPos.z + 1.0f, terrainPos.z + Terrain.terrainData.size.z - 1.0f);
+			bonusPos.y = 0.0f;
+			// Here we have a bonus object on the ground (y = 0).
+			bonusPos.y = Terrain.SampleHeight(bonusPos) + 1.0f;
+
+			// Create a bonus object at Position bonusPos.
+			// Quaternion.identity == zero rotation.
+			GameObject.Instantiate(BonusPrefab, bonusPos, Quaternion.identity);
+		}
+	}
+
+	public void BonusCatched()
+	{
+		--nbBonusLeft;
+		//Debug.Log("Bonus left : " + nbBonusLeft);
+		info.text = "Bonus left : " + nbBonusLeft;
+
+		if (nbBonusLeft == 0)
+		{
+			//Debug.Log("Game Finished !");
+			info.text = "Game Finished !";
 		}
 	}
 }
