@@ -4,6 +4,7 @@ public class PhysicallizedPlayer : MonoBehaviour
 {
 	public float speed = 30.0f; // in m / s.
 	public float rotationSpeed = 360.0f; // in deg/s.
+	public float animationSpeedScale = 0.1f;
 
 	private float _angle;
 	private Vector3 _move;
@@ -74,7 +75,7 @@ public class PhysicallizedPlayer : MonoBehaviour
 			_groundVelocity = (_currentGroundPos - _lastGroundPos) / Time.deltaTime;
 			float groundSpeed = _groundVelocity.magnitude;
 			//Debug.Log("Ground Speed : " + groundSpeed);
-			_animator.speed = groundSpeed * 0.1f;
+			_animator.speed = groundSpeed * animationSpeedScale;
 		}
 	}
 

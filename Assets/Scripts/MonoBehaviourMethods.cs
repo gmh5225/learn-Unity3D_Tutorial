@@ -6,6 +6,9 @@ namespace CeQueJeVeux // Since Unity 4.x
 	{
 		//private int _count;
 
+		public bool blocUpdate = false;
+		public bool blocFixedUpdate = false;
+
 		void Awake()
 		{
 			Debug.Log("Awake");
@@ -40,6 +43,10 @@ namespace CeQueJeVeux // Since Unity 4.x
 			//Debug.Log("Update");
 			//++_count;
 			//Debug.Log(_count);
+			while(blocUpdate)
+			{
+
+			}
 			Debug.Log("Dt : " + Time.deltaTime);
         }
 
@@ -53,6 +60,10 @@ namespace CeQueJeVeux // Since Unity 4.x
 		void FixedUpdate()
 		{
 			//Debug.Log("FixedUpdate");
+			while(blocFixedUpdate)
+			{
+
+			}
 			Debug.Log("Fixed Dt : " + Time.fixedDeltaTime);
 		}
 	}

@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 public class Game : MonoBehaviour {
 
@@ -8,14 +7,14 @@ public class Game : MonoBehaviour {
 	public GameObject BonusPrefab;
 	public UnityEngine.UI.Text info;
 
-	int nbBonusLeft;
+	private int _nbBonusLeft;
 	
 	// Update is called once per frame
 	void Start()
 	{
-		nbBonusLeft = nbBonus;
+		_nbBonusLeft = nbBonus;
 		//Debug.Log("Bonus left : " + nbBonusLeft);
-		info.text = "Bonus left : " + nbBonusLeft;
+		info.text = "Bonus left : " + _nbBonusLeft;
 
 		// Create Bonus all over the Terrain.
 		Vector3 terrainPos = Terrain.transform.position;
@@ -36,11 +35,11 @@ public class Game : MonoBehaviour {
 
 	public void BonusCatched()
 	{
-		--nbBonusLeft;
+		--_nbBonusLeft;
 		//Debug.Log("Bonus left : " + nbBonusLeft);
-		info.text = "Bonus left : " + nbBonusLeft;
+		info.text = "Bonus left : " + _nbBonusLeft;
 
-		if (nbBonusLeft == 0)
+		if (_nbBonusLeft == 0)
 		{
 			//Debug.Log("Game Finished !");
 			info.text = "Game Finished !";
