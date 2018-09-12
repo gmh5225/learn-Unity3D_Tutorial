@@ -27,7 +27,7 @@ public class PhysicallizedPlayer : MonoBehaviour
 		_rigidbody = GetComponent<Rigidbody>();
 		_animator = GetComponent<Animator>();
 
-		// We can override Unity Inspector parameters to be sure to get the good behavior.
+		// We can override Unity Inspector parameters to be sure to get the good behaviour.
 		if (_rigidbody != null)
 		{
 			_rigidbody.useGravity = true;
@@ -49,7 +49,9 @@ public class PhysicallizedPlayer : MonoBehaviour
 			_angle = -rotationSpeed * Time.deltaTime;
 		}
 		transform.Rotate(transform.up, _angle, Space.World);
+		//transform.Rotate(Vector3.up, _angle, Space.Self); // Do the same
 		//transform.Rotate(transform.InverseTransformDirection(transform.up), _angle, Space.Self); // Do the same
+
 
 		// Translation
 		_move = Vector3.zero;
