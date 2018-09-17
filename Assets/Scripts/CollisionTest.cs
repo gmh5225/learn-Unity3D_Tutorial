@@ -4,8 +4,7 @@ public class CollisionTest : MonoBehaviour
 {
 	public float power = 1.0f;
 
-	// Use these methods to catch events (e.g : subject passed through a door) or to implement special behaviours.
-
+	// Catch events with collision (collider.isTrigger = false).
 	private void OnCollisionEnter(Collision collision)
 	{
 		Debug.Log(collision.gameObject.name + " started collision !");
@@ -17,6 +16,7 @@ public class CollisionTest : MonoBehaviour
 		Debug.Log(collision.gameObject.name + " stopped collision !");
 	}
 
+	// Catch events only (collider.isTrigger = true).
 	private void OnTriggerEnter(Collider other)
 	{
 		Debug.Log(other.gameObject.name + " entered !");
