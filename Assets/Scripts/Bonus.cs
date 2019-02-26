@@ -24,8 +24,7 @@ public class Bonus : MonoBehaviour
 		if(other.tag == "Player")
 		{
 			//Debug.Log("Player Enter !");
-			_game.BonusCatched();
-			gameObject.SetActive(false);
+			_game.BonusCatched(this);
 		}
 	}
 
