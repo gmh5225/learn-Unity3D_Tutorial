@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace CeQueJeVeux // Since Unity 4.x
+namespace Whatever // Since Unity 4.x
 {
 	// Execution order of methods : https://docs.unity3d.com/Manual/ExecutionOrder.html
 	public class MonoBehaviourMethods : MonoBehaviour

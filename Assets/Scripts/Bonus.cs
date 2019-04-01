@@ -5,7 +5,7 @@ public class Bonus : MonoBehaviour
 	Game _game;
 	Collider _collider;
 
-	void Start()
+	void Awake()
 	{
 		_game = FindObjectOfType<Game>();
 
@@ -13,7 +13,6 @@ public class Bonus : MonoBehaviour
 		_collider.isTrigger = true;
 	}
 
-	// Update is called once per frame
 	void Update ()
 	{
 		transform.Rotate(transform.up, 360.0f * Time.deltaTime);
