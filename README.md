@@ -7,8 +7,8 @@ Unity3D 2017.4.12f1 or later
 
 # 1. Why Unity3D ?
 - User-friendly
-- Very goog support (Documentation, Community, Forums)
-- High quality integrated tools (Physics, Lightning, Rendering, Animation, Network)
+- Very good support (Documentation, Community, Forums)
+- High quality integrated tools (Physics, Lightning, Rendering, Animation, Network, ...)
 - Free version contains most of the features
 
 
