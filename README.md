@@ -9,6 +9,7 @@ Unity3D 2017.4.12f1 or later
 - User-friendly
 - Very good support (Documentation, Community, Forums)
 - High quality integrated tools (Physics, Lightning, Rendering, Animation, Network, ...)
+- Scripting with CSharp is really easy and fast
 - Free version contains most of the features
 
 
@@ -51,7 +52,7 @@ https://docs.unity3d.com/Manual/ExecutionOrder.html
 ### 2) RigidBody: make your object react to physics
 - All the code dealing with RigidBody should be put in FixedUpdate()
 - FixedUpdate() is Unity3D's Physics loop, timestep is constant
-- Update() & LateUpdate() have an irregular timestep !
+- Update() & LateUpdate() have a rendering-dependent timestep (non-constant) !
 
 
 # 6. Animation
@@ -69,7 +70,7 @@ https://docs.unity3d.com/Manual/ExecutionOrder.html
 ### 1) Create a controllable Player (Input & Camera)
 ### 2) Add a terrain (heightmap, textures, details)
 ### 3) Add trees & wind
-### 4) Add physics to the Player
+### 4) Add physics to the Player (handling of collisions, climbing slopes)
 ### 5) Add world bounds
 ### 6) Add bonus objects manually, then procedurally
 ### 7) Add a game logic
@@ -85,8 +86,10 @@ https://docs.unity3d.com/Manual/ExecutionOrder.html
 
 # 9. Unity3D & Git
 ### 1) You should use Git with Unity3D !
-### 2) Edit > Settings > Editor : Visible Meta Files
-Meta files contain information that need to be shared between developers.
-### 3) Only Commit Assets & ProjectSettings folders (see .gitignore file)
+### 2) Edit > Project Settings > Editor : 
+- Version Control : Visible Meta Files contains information that need to be shared between developers.
+- Asset Serialization : Mixed mode allows both text & binary files
+- Line Endings for New Scripts : choose OS Native to not being bored by file endings while creating new scripts
+### 3) Only Commit "Assets" & "ProjectSettings" folders (see .gitignore file)
 ### 4) REMOVE OPERATIONS SHOULD BE DONE ONLY IN UNITYEDITOR !
 ### 5) Don’t forget to Add before Commit : Unity3D can generate files (meta files especially)
