@@ -8,7 +8,7 @@ Unity3D 2017.4.12f1 or later
 # 1. Why Unity3D ?
 - User-friendly
 - Very good support (Documentation, Community, Forums)
-- High quality integrated tools (Physics, Lightning, Rendering, Animation, Network, ...)
+- High quality integrated tools (Physics, Lighting, Rendering, Animation, Network, ...)
 - Scripting with CSharp is really easy and fast
 - Free version contains most of the features
 
@@ -18,7 +18,7 @@ Unity3D 2017.4.12f1 or later
 - Hierarchy / Project tabs
 - Console / Profiler tabs
 - The Inspector
-- Other windows (Audio, Animation, Animator, Lightning, Navigation, ...)
+- Other windows (Audio, Animation, Animator, Lighting, Navigation, ...)
 
 
 # 3. Unity3D Configuration
