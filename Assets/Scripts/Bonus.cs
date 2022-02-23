@@ -16,19 +16,25 @@
 * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.							  *
 ******************************************************************************************************************************************************/
 
+using System;
 using UnityEngine;
 
 public class Bonus : MonoBehaviour
 {
-	Game _game;
-	Collider _collider;
+	private Collider _collider;
+	// V1
+	//private Game _game;
+
+	// V2 : remove Game dependency.
+	public Action<Bonus> PlayerEntered;
 
 	void Awake()
 	{
-		_game = FindObjectOfType<Game>();
-
 		_collider = GetComponent<Collider>();
 		_collider.isTrigger = true;
+
+		// V1
+		//_game = FindObjectOfType<Game>();
 	}
 
 	void Update ()
@@ -41,7 +47,13 @@ public class Bonus : MonoBehaviour
 		if(other.tag == "Player")
 		{
 			//Debug.Log("Player Enter !");
-			_game.BonusCatched(this);
+			if(PlayerEntered != null)
+			{
+				PlayerEntered(this);
+			}
+
+			// V1
+			//_game.BonusCatched(this);
 		}
 	}
 

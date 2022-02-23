@@ -22,30 +22,37 @@ public class Game : MonoBehaviour
 {
 	public int nbBonus = 10;
 	public Terrain terrain;
-	public GameObject BonusPrefab;
+	public Bonus bonusPrefab;
 	public UnityEngine.UI.Text infos_Text;
 	public UnityEngine.UI.Button newGame_Button;
 
+	private Player _player;
 	private int _nbBonusLeft;
-	
+
 	void Start()
 	{
+		_player = FindObjectOfType<Player>();
+
 		newGame_Button.onClick.AddListener(() =>
 		{
 			newGame_Button.gameObject.SetActive(false);
 			_NewGame();
 		});
+
+		_ShowNewGameButton();
 	}
 
 	void Update()
 	{
-		if(Input.GetKeyUp(KeyCode.Escape))
+		if (Input.GetKeyUp(KeyCode.Escape))
 		{
 			Application.Quit();
 		}
 	}
 
-	public void BonusCatched(Bonus pBonus)
+	// V1
+	//public void BonusCatched(Bonus pBonus)
+	private void _BonusCatched(Bonus pBonus)
 	{
 		// Destroy Bonus
 		Object.Destroy(pBonus.gameObject);
@@ -59,12 +66,19 @@ public class Game : MonoBehaviour
 		{
 			//Debug.Log("Game Finished !");
 			infos_Text.text = "Game Finished !";
-			newGame_Button.gameObject.SetActive(true);
+			_ShowNewGameButton();
 		}
 	}
 
 	private void _NewGame()
 	{
+		if (_player.useMouse)
+		{
+			Cursor.lockState = CursorLockMode.Locked;
+			Cursor.visible = false;
+		}
+		_player.enabled = true;
+
 		_nbBonusLeft = nbBonus;
 		//Debug.Log("Bonus left : " + nbBonusLeft);
 		infos_Text.text = "Bonus left : " + _nbBonusLeft;
@@ -72,17 +86,28 @@ public class Game : MonoBehaviour
 		// Create Bonus all over the Terrain.
 		Vector3 terrainPos = terrain.transform.position;
 		Vector3 bonusPos = Vector3.zero;
+		float minHeight = bonusPrefab.transform.localScale.y * 0.5f;
+		float maxHeight = minHeight + (_player.transform.localScale.y * 0.5f) + _player.jumpHeight - 0.1f;
 		for (int i = 0; i < nbBonus; ++i)
 		{
 			bonusPos.x = Random.Range(terrainPos.x + 1.0f, terrainPos.x + terrain.terrainData.size.x - 1.0f);
 			bonusPos.z = Random.Range(terrainPos.z + 1.0f, terrainPos.z + terrain.terrainData.size.z - 1.0f);
 			bonusPos.y = 0.0f;
 			// Put the bonus object 1m above the terrain.
-			bonusPos.y = terrain.SampleHeight(bonusPos) + 1.0f;
+			bonusPos.y = terrain.SampleHeight(bonusPos) + Random.Range(minHeight, maxHeight);
 
 			// Create a bonus object at Position bonusPos.
 			// Quaternion.identity == zero rotation.
-			GameObject.Instantiate(BonusPrefab, bonusPos, Quaternion.identity);
+			Bonus bonus = GameObject.Instantiate(bonusPrefab, bonusPos, Quaternion.identity);
+			bonus.PlayerEntered += _BonusCatched;
 		}
+	}
+
+	private void _ShowNewGameButton()
+	{
+		newGame_Button.gameObject.SetActive(true);
+		_player.enabled = false;
+		Cursor.lockState = CursorLockMode.None;
+		Cursor.visible = true;
 	}
 }
