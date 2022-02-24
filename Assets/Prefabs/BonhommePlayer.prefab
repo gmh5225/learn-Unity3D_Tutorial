@@ -77,6 +77,7 @@ MonoBehaviour:
   runFactor: 2
   airFactor: 0.4
   jumpHeight: 2.5
+  stickToGround: 1
   animationSpeedScale: 0.2
 --- !u!1 &192294
 GameObject:

@@ -26,6 +26,7 @@ public class Player : MonoBehaviour
 	public const string MOUSE_Y = "Mouse Y";
 	public const string MOUSE_SW = "Mouse ScrollWheel";
 	public const string JUMP = "Jump";
+	public const string MOVE = "Move";
 	public const string RUN = "Run";
 
 	[Header("Camera")]
@@ -44,6 +45,7 @@ public class Player : MonoBehaviour
 	public float runFactor = 2f;
 	public float airFactor = 0.4f;
 	public float jumpHeight = 2.5f;
+	public bool stickToGround = true;
 	public float animationSpeedScale = 0.2f;
 	//public bool animationUseGroundSpeed = true;
 	//public float groundCheckDistance = 0.3f;
@@ -109,6 +111,7 @@ public class Player : MonoBehaviour
 	void Update ()
 	{
 		float dt = Time.deltaTime;
+		float gravity = Physics.gravity.y;
 		_isGrounded = _controller.isGrounded;
 		//_isGrounded = Physics.CheckSphere(_transform.position, groundCheckDistance, _groundLayerMask, QueryTriggerInteraction.Ignore);
 		//Debug.Log("Is grounded : " + _isGrounded);
@@ -152,13 +155,13 @@ public class Player : MonoBehaviour
 		{
 			// strafe
 			_move.Set(Input.GetAxis(H_AXIS), 0f, Input.GetAxis(V_AXIS));
-			_move.Normalize();
+			_move.Normalize(); // Apply speed to the X/Z direction
 			_move *= translationSpeed;
 		}
 		else
 		{
 			// forward only
-			_move.Set(0f, 0f, translationSpeed * Input.GetAxis(V_AXIS));
+			_move.Set(0f, 0f, translationSpeed * Input.GetAxis(V_AXIS));  // Apply speed directly to Z direction
 		}
 		
 		// V1
@@ -189,7 +192,7 @@ public class Player : MonoBehaviour
 		if(useMouse)
 		{
 			// Player Yaw
-			_transform.rotation *= Quaternion.Euler(0f, _yaw, 0f);
+			_transform.Rotate(Vector3.up, _yaw, Space.Self);
 			// Camera Pitch
 			Vector3 euler = cameraTransform.localEulerAngles;
 			euler.x = _ClampAngle(euler.x + _cameraPitch, cameraPitchMin, cameraPitchMax);
@@ -198,6 +201,7 @@ public class Player : MonoBehaviour
 		else
 		{
 			_transform.Rotate(Vector3.up, _yaw * dt, Space.Self);
+			//_transform.rotation *= Quaternion.Euler(0f, _yaw * dt, 0f); // Do the same
 			//_transform.Rotate(_transform.up, _yaw * dt, Space.World); // Do the same
 			//_transform.Rotate(_transform.InverseTransformDirection(_transform.up), _yaw * dt, Space.Self); // Do the same
 		}
@@ -205,10 +209,14 @@ public class Player : MonoBehaviour
 		//_transform.Translate(_move * dt, Space.Self);
 
 		// APPLY JUMP & GRAVITY
-		float gravity = Physics.gravity.y;
 		if (_isGrounded)
 		{
-			if(_isJumping)
+			if(!stickToGround)
+			{
+				_velocity.y = 0f;
+			}
+			
+			if (_isJumping)
 			{
 				if (_animator != null)
 				{
@@ -225,6 +233,7 @@ public class Player : MonoBehaviour
 						_animator.SetBool(JUMP, true);
 					}
 					_isJumping = true;
+					// TODO : explain this.
 					_velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
 					//Debug.Log("Jump");
 				}
@@ -237,14 +246,23 @@ public class Player : MonoBehaviour
 		if(_animator != null)
 		{
 			float speed = 1f;
-			//bool isWalking = _animator.GetCurrentAnimatorStateInfo(0).IsName("Walk");
-			//if(isWalking)
-			if(!_isJumping)
+			bool translate = (_move != Vector3.zero);
+			bool rotate = (_yaw != 0f);
+			bool move = _isGrounded && (translate || rotate);
+			_animator.SetBool(MOVE, move);
+			if (move)
 			{
-				speed = _ComputeGroundSpeed(_transform.position, dt) * animationSpeedScale;
-				//speed = _ComputeSpeed(_transform.position, dt) * animationSpeedScale;
+				if(translate)
+				{
+					speed = _ComputeGroundSpeed(_transform.position, dt) * animationSpeedScale;
+					//speed = _ComputeSpeed(_transform.position, dt) * animationSpeedScale;
+				}
+				else
+				{
+					speed = Mathf.Abs(_yaw);
+				}
 			}
-			_animator.speed = speed;
+			_animator.speed = Mathf.Lerp(_animator.speed, speed, 0.5f);
 		}
 		//Debug.Log("Is Grounded : " + _isGrounded);
 		//Debug.Log("Animator speed : " + _animator.speed);
