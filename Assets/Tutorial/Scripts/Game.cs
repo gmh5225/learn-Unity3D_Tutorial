@@ -24,7 +24,7 @@ public class Game : MonoBehaviour
 	public Terrain terrain;
 	public Bonus bonusPrefab;
 	public AudioSource backgroundMusic;
-	public float pitchChangeSmoothTime = 0.01f;
+	//public float pitchChangeSmoothTime = 0.01f;
 	public UnityEngine.UI.Text infos_Text;
 	public UnityEngine.UI.Button newGame_Button;
 
@@ -46,9 +46,11 @@ public class Game : MonoBehaviour
 
 	void Update()
 	{
-		float pitch = Mathf.Max(1f, _player.enabled ? _player.TranslationSpeed / _player.translationSpeed : 1f);
-		float pitchVelocity = 0f;
-		backgroundMusic.pitch = Mathf.SmoothDamp(backgroundMusic.pitch, pitch, ref pitchVelocity, pitchChangeSmoothTime);
+		//float pitch = Mathf.Max(1f, _player.enabled ? _player.TranslationSpeed / _player.translationSpeed : 1f);
+		//float pitchVelocity = 0f;
+		//backgroundMusic.pitch = Mathf.SmoothDamp(backgroundMusic.pitch, pitch, ref pitchVelocity, pitchChangeSmoothTime);
+		backgroundMusic.pitch = (_player.IsGrounded && _player.IsRunning) ? 2f : 1f;
+
 		//Debug.Log("Pitch : " + pitch);
 
 		if (Input.GetKeyUp(KeyCode.Escape))
@@ -58,12 +60,9 @@ public class Game : MonoBehaviour
 	}
 
 	// V1
-	//public void BonusCatched(Bonus pBonus)
-	private void _BonusCatched(Bonus pBonus)
+	//public void BonusCollected(Bonus pBonus)
+	private void _BonusCollected(Bonus pBonus)
 	{
-		// Destroy Bonus
-		Object.Destroy(pBonus.gameObject);
-
 		// Update Score
 		--_nbBonusLeft;
 		//Debug.Log("Bonus left : " + nbBonusLeft);
@@ -106,7 +105,7 @@ public class Game : MonoBehaviour
 			// Create a bonus object at Position bonusPos.
 			// Quaternion.identity == zero rotation.
 			Bonus bonus = GameObject.Instantiate(bonusPrefab, bonusPos, Quaternion.identity);
-			bonus.PlayerEntered += _BonusCatched;
+			bonus.PlayerEntered += _BonusCollected;
 		}
 	}
 

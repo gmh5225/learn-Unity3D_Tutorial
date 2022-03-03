@@ -29,6 +29,9 @@ public class Player : MonoBehaviour
 	public const string MOVE = "Move";
 	public const string RUN = "Run";
 
+	public bool IsGrounded { get { return _isGrounded; } }
+	public bool IsJumping { get { return _isJumping; } }
+	public bool IsRunning { get { return _isRunning; } }
 	public float TranslationSpeed { get; private set; }
 	public float RotationSpeed { get; private set; }
 
@@ -58,6 +61,7 @@ public class Player : MonoBehaviour
 	private Transform _transform;
 	private CharacterController _controller;
 	private Animator _animator;
+	private TrailRenderer[] _trails;
 
 	private float _cameraPitch = 0f;
 	private Vector3 _cameraLocalPos = Vector3.zero;
@@ -67,6 +71,7 @@ public class Player : MonoBehaviour
 	private Vector3 _velocity = Vector3.zero;
 	private bool _isGrounded = true;
 	private bool _isJumping = false;
+	private bool _isRunning = false;
 	//private int _groundLayerMask;
 	//private Vector3 _jumpForce = Vector3.zero;
 
@@ -89,6 +94,7 @@ public class Player : MonoBehaviour
 		_transform = GetComponent<Transform>();
 		_controller = GetComponent<CharacterController>();
 		_animator = GetComponentInChildren<Animator>();
+		_trails = GetComponentsInChildren<TrailRenderer>();
 
 		// We can override Unity Inspector parameters to be sure to get the good behaviour.
 		//_rigidbody = GetComponent<Rigidbody>();
@@ -171,7 +177,7 @@ public class Player : MonoBehaviour
 			// forward only
 			_move.Set(0f, 0f, translationSpeed * Input.GetAxis(V_AXIS));  // Apply speed directly to Z direction
 		}
-		
+
 		// V1
 		//if (Input.GetKey(KeyCode.UpArrow))
 		//{
@@ -181,9 +187,10 @@ public class Player : MonoBehaviour
 		//{
 		//	_move.Set(0.0f, 0.0f, -speed);
 		//}
-		
+
 		// Run : accelerate translation.
-		if (Input.GetButton(RUN))
+		_isRunning = Input.GetButton(RUN);
+		if (_isRunning)
 		{
 			_move *= runFactor;
 		}
@@ -268,6 +275,10 @@ public class Player : MonoBehaviour
 			}
 			_animator.speed = speed; //Mathf.Lerp(_animator.speed, speed, 0.5f);
 		}
+
+		// VFX
+		_trails[0].emitting = _trails[1].emitting = _isJumping || (_isGrounded && _isRunning);
+
 		//Debug.Log("Is Grounded : " + _isGrounded);
 		//Debug.Log("Animator speed : " + _animator.speed);
 	}

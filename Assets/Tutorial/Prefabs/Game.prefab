@@ -48,9 +48,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   nbBonus: 10
   terrain: {fileID: 0}
-  bonusPrefab: {fileID: 11409176, guid: c6d54c21fbd154a41ab0931e9a4dbc03, type: 3}
+  bonusPrefab: {fileID: 4406378796266799410, guid: 5b32e3bafc7d29b42804b492f4b93d54,
+    type: 3}
   backgroundMusic: {fileID: 1290774051}
-  pitchChangeSmoothTime: 0.01
   infos_Text: {fileID: 11473980}
   newGame_Button: {fileID: 114039309469299782}
 --- !u!1 &129260
@@ -340,7 +340,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: 435c523c3c03b79458aa74e79f2763f9, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 0.2
+  m_Volume: 0.16
   m_Pitch: 1
   Loop: 1
   Mute: 0

@@ -21,6 +21,8 @@ using UnityEngine;
 
 public class Bonus : MonoBehaviour
 {
+	public AudioClip collectedAudioClip;
+	//private AudioSource _audioSource;
 	private Collider _collider;
 	// V1
 	//private Game _game;
@@ -30,6 +32,7 @@ public class Bonus : MonoBehaviour
 
 	void Awake()
 	{
+		//_audioSource = GetComponent<AudioSource>();
 		_collider = GetComponent<Collider>();
 		_collider.isTrigger = true;
 
@@ -39,21 +42,34 @@ public class Bonus : MonoBehaviour
 
 	void Update ()
 	{
+		// Unity tool.
 		transform.Rotate(transform.up, 360.0f * Time.deltaTime);
+
+		// Quaternion Method
+		//transform.rotation *= Quaternion.AngleAxis(360.0f * Time.deltaTime, Vector3.up);
+
+		// Euler method (less reliable => Gimbal Lock).
+		//Vector3 euler = transform.eulerAngles;
+		//euler.y += 360.0f * Time.deltaTime;
+		//transform.eulerAngles = euler;
 	}
 
 	void OnTriggerEnter(Collider other)
 	{
-		if(other.tag == "Player")
+		if(other.CompareTag("Player"))
 		{
+			AudioSource.PlayClipAtPoint(collectedAudioClip, transform.position);
+			//_audioSource.Play(); // destroyed before clip played.
+			Destroy(gameObject);
+
 			//Debug.Log("Player Enter !");
-			if(PlayerEntered != null)
+			if (PlayerEntered != null)
 			{
 				PlayerEntered(this);
 			}
 
 			// V1
-			//_game.BonusCatched(this);
+			//_game.BonusCollected(this);
 		}
 	}
 
