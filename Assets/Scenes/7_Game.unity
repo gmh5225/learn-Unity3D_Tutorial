@@ -171,7 +171,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 162330, guid: 41e4681043ceda94399e579878195939, type: 3}
       propertyPath: m_Name
-      value: AnimatedPlayer
+      value: BonhommePlayer
       objectReference: {fileID: 0}
     - target: {fileID: 473394, guid: 41e4681043ceda94399e579878195939, type: 3}
       propertyPath: m_RootOrder
@@ -280,10 +280,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 15405868, guid: e368cbfb5f6e55843b4c3f50e2db37a3, type: 3}
-      propertyPath: m_Material
-      value: 
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e368cbfb5f6e55843b4c3f50e2db37a3, type: 3}
 --- !u!4 &717029467 stripped
@@ -362,7 +358,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 112770, guid: f1643b7a12fc3024593bf2b6a3885860, type: 3}
       propertyPath: m_Name
-      value: Player
+      value: CapsulePlayer
       objectReference: {fileID: 0}
     - target: {fileID: 112770, guid: f1643b7a12fc3024593bf2b6a3885860, type: 3}
       propertyPath: m_IsActive
@@ -560,6 +556,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 351630322}
     m_Modifications:
+    - target: {fileID: 1292066837626276, guid: 3b009086933ae3c4eae83d90b7499701, type: 3}
+      propertyPath: m_Name
+      value: WindZone
+      objectReference: {fileID: 0}
     - target: {fileID: 4663689372022626, guid: 3b009086933ae3c4eae83d90b7499701, type: 3}
       propertyPath: m_RootOrder
       value: 3
@@ -590,6 +590,18 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4663689372022626, guid: 3b009086933ae3c4eae83d90b7499701, type: 3}
       propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4663689372022626, guid: 3b009086933ae3c4eae83d90b7499701, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4663689372022626, guid: 3b009086933ae3c4eae83d90b7499701, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4663689372022626, guid: 3b009086933ae3c4eae83d90b7499701, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []

@@ -23,6 +23,8 @@ public class Game : MonoBehaviour
 	public int nbBonus = 10;
 	public Terrain terrain;
 	public Bonus bonusPrefab;
+	public AudioSource backgroundMusic;
+	public float pitchChangeSmoothTime = 0.01f;
 	public UnityEngine.UI.Text infos_Text;
 	public UnityEngine.UI.Button newGame_Button;
 
@@ -44,6 +46,11 @@ public class Game : MonoBehaviour
 
 	void Update()
 	{
+		float pitch = Mathf.Max(1f, _player.enabled ? _player.TranslationSpeed / _player.translationSpeed : 1f);
+		float pitchVelocity = 0f;
+		backgroundMusic.pitch = Mathf.SmoothDamp(backgroundMusic.pitch, pitch, ref pitchVelocity, pitchChangeSmoothTime);
+		//Debug.Log("Pitch : " + pitch);
+
 		if (Input.GetKeyUp(KeyCode.Escape))
 		{
 			Application.Quit();

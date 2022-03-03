@@ -29,6 +29,9 @@ public class Player : MonoBehaviour
 	public const string MOVE = "Move";
 	public const string RUN = "Run";
 
+	public float TranslationSpeed { get; private set; }
+	public float RotationSpeed { get; private set; }
+
 	[Header("Camera")]
 	// Ajust Mouse sensivity X/Y & ScrollWheel directly in ProjectSettings.Input : 0.5 is a good value.
 	public bool useMouse = true;
@@ -47,6 +50,7 @@ public class Player : MonoBehaviour
 	public float jumpHeight = 2.5f;
 	public bool stickToGround = true;
 	public float animationSpeedScale = 0.2f;
+	public float rotAnimationSpeedScale = 0.01f;
 	//public bool animationUseGroundSpeed = true;
 	//public float groundCheckDistance = 0.3f;
 
@@ -74,6 +78,10 @@ public class Player : MonoBehaviour
 	private Vector2 _lastGroundPos = Vector2.zero;
 	private Vector2 _currentGroundPos = Vector2.zero;
 	private Vector2 _computedGroundVelocity = Vector2.zero;
+
+	private float _lastYaw = 0f;
+	private float _currentYaw = 0f;
+	private float _computedRotationSpeed = 0f;
 
 	void Awake()
 	{
@@ -242,8 +250,12 @@ public class Player : MonoBehaviour
 		_velocity.y += gravity * dt;
 		_controller.Move(_velocity * dt);
 
+		// COMPUTE SPEEDS
+		TranslationSpeed = _ComputeGroundSpeed(_transform.position, dt);
+		RotationSpeed = Mathf.Abs(_ComputeRotationSpeed(_transform.localEulerAngles.y, dt));
+		
 		// ANIMATE
-		if(_animator != null)
+		if (_animator != null)
 		{
 			float speed = 1f;
 			bool translate = (_move != Vector3.zero);
@@ -252,17 +264,9 @@ public class Player : MonoBehaviour
 			_animator.SetBool(MOVE, move);
 			if (move)
 			{
-				if(translate)
-				{
-					speed = _ComputeGroundSpeed(_transform.position, dt) * animationSpeedScale;
-					//speed = _ComputeSpeed(_transform.position, dt) * animationSpeedScale;
-				}
-				else
-				{
-					speed = Mathf.Abs(_yaw);
-				}
+				speed = Mathf.Max(TranslationSpeed * animationSpeedScale, RotationSpeed * rotAnimationSpeedScale);
 			}
-			_animator.speed = Mathf.Lerp(_animator.speed, speed, 0.5f);
+			_animator.speed = speed; //Mathf.Lerp(_animator.speed, speed, 0.5f);
 		}
 		//Debug.Log("Is Grounded : " + _isGrounded);
 		//Debug.Log("Animator speed : " + _animator.speed);
@@ -280,6 +284,14 @@ public class Player : MonoBehaviour
 	//		//Debug.Log("Speed : " + _ComputeSpeed(_rigidbody.position, Time.fixedDeltaTime));
 	//	}
 	//}
+
+	private float _ComputeRotationSpeed(float pYaw, float pDt)
+	{
+		_lastYaw = _currentYaw;
+		_currentYaw = pYaw;
+		_computedRotationSpeed = Mathf.DeltaAngle(_currentYaw, _lastYaw) / pDt;
+		return _computedRotationSpeed;
+	}
 
 	private float _ComputeGroundSpeed(Vector3 pNewPos, float pDt)
 	{
