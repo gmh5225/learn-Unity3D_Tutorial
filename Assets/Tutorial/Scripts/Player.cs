@@ -61,6 +61,7 @@ public class Player : MonoBehaviour
 	private Transform _transform;
 	private CharacterController _controller;
 	private Animator _animator;
+	private Footsteps _footsteps;
 	private TrailRenderer[] _trails;
 
 	private float _cameraPitch = 0f;
@@ -94,6 +95,7 @@ public class Player : MonoBehaviour
 		_transform = GetComponent<Transform>();
 		_controller = GetComponent<CharacterController>();
 		_animator = GetComponentInChildren<Animator>();
+		_footsteps = GetComponentInChildren<Footsteps>();
 		_trails = GetComponentsInChildren<TrailRenderer>();
 
 		// We can override Unity Inspector parameters to be sure to get the good behaviour.
@@ -238,6 +240,7 @@ public class Player : MonoBehaviour
 					_animator.SetBool(JUMP, false);
 				}
 				_isJumping = false;
+				_footsteps.PlayLand();
 			}
 			else
 			{
@@ -251,6 +254,7 @@ public class Player : MonoBehaviour
 					// TODO : explain this.
 					_velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
 					//Debug.Log("Jump");
+					_footsteps.PlayJump();
 				}
 			}
 		}
@@ -260,19 +264,24 @@ public class Player : MonoBehaviour
 		// COMPUTE SPEEDS
 		TranslationSpeed = _ComputeGroundSpeed(_transform.position, dt);
 		RotationSpeed = Mathf.Abs(_ComputeRotationSpeed(_transform.localEulerAngles.y, dt));
-		
+		bool translate = (_move != Vector3.zero); // more reactive than checking TranslationSpeed > 0f.
+		bool rotate = (_yaw != 0f); // more reactive than checking RotationSpeed > 0f.
+		bool move = _isGrounded && (translate || rotate);
+		float speed = 1f;
+		if (move)
+		{
+			speed = Mathf.Max(TranslationSpeed * animationSpeedScale, RotationSpeed * rotAnimationSpeedScale);
+			if(translate)
+			{
+				// FOOTSTEPS (CapsulePlayer Only)
+				_footsteps.UpdateSlidingFootStep(speed);
+			}
+		}
+
 		// ANIMATE
 		if (_animator != null)
 		{
-			float speed = 1f;
-			bool translate = (_move != Vector3.zero);
-			bool rotate = (_yaw != 0f);
-			bool move = _isGrounded && (translate || rotate);
-			_animator.SetBool(MOVE, move);
-			if (move)
-			{
-				speed = Mathf.Max(TranslationSpeed * animationSpeedScale, RotationSpeed * rotAnimationSpeedScale);
-			}
+			_animator.SetBool(MOVE, move);	
 			_animator.speed = speed; //Mathf.Lerp(_animator.speed, speed, 0.5f);
 		}
 

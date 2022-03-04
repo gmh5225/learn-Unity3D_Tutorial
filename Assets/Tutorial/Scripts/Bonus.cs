@@ -21,8 +21,9 @@ using UnityEngine;
 
 public class Bonus : MonoBehaviour
 {
-	public AudioClip collectedAudioClip;
-	//private AudioSource _audioSource;
+	private MeshRenderer _meshRenderer;
+	private AudioSource _audioSource;
+	// public AudioClip collectedAudioClip; // PlayClipAtPoint is slower to start playing sound (needs to instantiate an AudioSource).
 	private Collider _collider;
 	// V1
 	//private Game _game;
@@ -32,7 +33,8 @@ public class Bonus : MonoBehaviour
 
 	void Awake()
 	{
-		//_audioSource = GetComponent<AudioSource>();
+		_meshRenderer = GetComponent<MeshRenderer>();
+		_audioSource = GetComponent<AudioSource>();
 		_collider = GetComponent<Collider>();
 		_collider.isTrigger = true;
 
@@ -58,9 +60,14 @@ public class Bonus : MonoBehaviour
 	{
 		if(other.CompareTag("Player"))
 		{
-			AudioSource.PlayClipAtPoint(collectedAudioClip, transform.position);
-			//_audioSource.Play(); // destroyed before clip played.
-			Destroy(gameObject);
+			// PlayClipAtPoint is slower to start playing sound (needs to instantiate an AudioSource).
+			// AudioSource.PlayClipAtPoint(collectedAudioClip, transform.position);
+			_audioSource.Play();
+			// Hide and disable collision immediately.
+			_meshRenderer.enabled = false;
+			_collider.enabled = false;
+			// Destroy GameObject once the AudioClip played.
+			Destroy(gameObject, _audioSource.clip.length);
 
 			//Debug.Log("Player Enter !");
 			if (PlayerEntered != null)
