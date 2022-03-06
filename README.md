@@ -5,4 +5,4 @@ A simple 3D game tutorial, where you build everything from scratch to learn the 
 ## [Instructions](Unity3D_Tutorial.md)
 
 ## Releases notes
-Lastly tested with Unity3D 2017.4.35f1
+Made with Unity3D 2019.4.35f1
