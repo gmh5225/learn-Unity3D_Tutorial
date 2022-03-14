@@ -18,30 +18,18 @@
 
 using UnityEngine;
 
-public class CollisionTest : MonoBehaviour
+public class TriggerTest : MonoBehaviour
 {
-	public float power = 1.0f;
-
-	// Catch events with collision (collider.isTrigger = false).
-	void OnCollisionEnter(Collision collision)
-	{
-		Debug.Log(collision.gameObject.name + " started collision !");
-		collision.rigidbody.AddForce(collision.impulse * power, ForceMode.Impulse);
-	}
-
-	void OnCollisionExit(Collision collision)
-	{
-		Debug.Log(collision.gameObject.name + " stopped collision !");
-	}
-
-	// Catch events only (collider.isTrigger = true).
+	// Catch events only if (collider.isTrigger == true).
+	// Useful to know if objects penetrates each others (no pysical collision).
 	void OnTriggerEnter(Collider other)
 	{
-		Debug.Log(other.gameObject.name + " entered !");
+		Debug.LogWarning(other.gameObject.name + " entered in " + gameObject.name);
 	}
 
+	// Catch events only if (collider.isTrigger == true).
 	void OnTriggerExit(Collider other)
 	{
-		Debug.Log(other.gameObject.name + " exited !");
+		Debug.LogWarning(other.gameObject.name + " exited from " + gameObject.name);
 	}
 }

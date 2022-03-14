@@ -23,51 +23,69 @@ namespace Whatever // Since Unity 4.x
 	// Execution order of methods : https://docs.unity3d.com/Manual/ExecutionOrder.html
 	public class MonoBehaviourMethods : MonoBehaviour
 	{
+		#region Init
+		// Called only once, only on active GameObjects.
 		void Awake()
 		{
 			Debug.Log("Awake");
         }
 
-		void Start()
-		{
-			Debug.Log("Start");
-		}
-
+		// Called when Behaviour is enabled
 		void OnEnable()
 		{
 			Debug.Log("OnEnable");
 		}
 
-		void OnDisable()
+		// Called only once at start of the application.
+		void Start()
 		{
-			Debug.Log("OnDisable");
+			Debug.Log("Start");
 		}
+		#endregion
 
-		void OnDestroy()
-		{
-			Debug.Log("OnDestroy");
-		}
-
-		// Main Loop
+		#region Update
+		// Main Loop : called every frame
 		void Update()
 		{
 			Debug.Log("Update : " + Time.deltaTime);
 
-			if(Input.GetKeyUp(KeyCode.Space))
+			if (Input.GetKeyUp(KeyCode.Space))
 			{
 				Debug.LogWarning("Space pressed !");
 			}
-        }
+		}
 
+		// Main Loop : called every frame, just after Update().
 		void LateUpdate()
 		{
 			Debug.Log("LateUpdate : " + Time.deltaTime);
 		}
 
-		// Physics Loop
+		// Physics Loop : called every fixedDeltaTime
 		void FixedUpdate()
 		{
 			Debug.Log("FixedUpdate : " + Time.fixedDeltaTime);
 		}
+		#endregion
+
+		#region End
+		// Called when the application quit
+		private void OnApplicationQuit()
+		{
+			Debug.Log("OnApplicationQuit");
+		}
+
+		// Called when Behaviour is disabled
+		void OnDisable()
+		{
+			Debug.Log("OnDisable");
+		}
+
+		// Called when the object is destroyed.
+		void OnDestroy()
+		{
+			Debug.Log("OnDestroy");
+		}
+		#endregion
 	}
 }
