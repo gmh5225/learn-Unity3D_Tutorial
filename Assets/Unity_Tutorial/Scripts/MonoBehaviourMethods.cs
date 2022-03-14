@@ -20,23 +20,25 @@ using UnityEngine;
 
 namespace Whatever // Since Unity 4.x
 {
+	// Scripts should inherit from MonoBehaviour : https://docs.unity3d.com/ScriptReference/MonoBehaviour.html
 	// Execution order of methods : https://docs.unity3d.com/Manual/ExecutionOrder.html
+	// If the GameObject is inactive, no method is called.
 	public class MonoBehaviourMethods : MonoBehaviour
 	{
 		#region Init
-		// Called only once, only on active GameObjects.
+		// Called only once (script can be disabled)
 		void Awake()
 		{
 			Debug.Log("Awake");
-        }
+		}
 
-		// Called when Behaviour is enabled
+		// Called when script is enabled
 		void OnEnable()
 		{
 			Debug.Log("OnEnable");
 		}
 
-		// Called only once at start of the application.
+		// Called only once (script must be enabled)
 		void Start()
 		{
 			Debug.Log("Start");
@@ -55,7 +57,7 @@ namespace Whatever // Since Unity 4.x
 			}
 		}
 
-		// Main Loop : called every frame, just after Update().
+		// Main Loop : called every frame, after Update().
 		void LateUpdate()
 		{
 			Debug.Log("LateUpdate : " + Time.deltaTime);
@@ -75,7 +77,7 @@ namespace Whatever // Since Unity 4.x
 			Debug.Log("OnApplicationQuit");
 		}
 
-		// Called when Behaviour is disabled
+		// Called when script is disabled
 		void OnDisable()
 		{
 			Debug.Log("OnDisable");
