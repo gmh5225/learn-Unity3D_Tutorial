@@ -2,6 +2,7 @@
 *.csproj
 *.sln
 *.vs
+*.vsconfig
 /obj
 /Library
 /Temp
