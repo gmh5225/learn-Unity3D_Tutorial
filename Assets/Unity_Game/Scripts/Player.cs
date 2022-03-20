@@ -31,6 +31,7 @@ public class Player : MonoBehaviour
 
 	public bool IsGrounded { get { return _isGrounded; } }
 	public bool IsJumping { get { return _isJumping; } }
+	public bool IsFalling { get { return (!_isGrounded) && (!_isJumping); } }
 	public bool IsRunning { get { return _isRunning; } }
 	public float TranslationSpeed { get; private set; }
 	public float RotationSpeed { get; private set; }
@@ -38,20 +39,22 @@ public class Player : MonoBehaviour
 	[Header("Camera")]
 	// Ajust Mouse sensivity X/Y & ScrollWheel directly in ProjectSettings.Input : 0.5 is a good value.
 	public bool useMouse = true;
+	public float mouseWheelSpeed = 10f;
 	public Transform cameraTransform;
 	public float cameraPitchMin = -17f;
 	public float cameraPitchMax = 23f;
 	public float cameraDistanceMin = 10f;
-	public float cameraDistanceMax = 30f;
+	public float cameraDistanceMax = 40f;
 	public float cameraHeightMin = 6f;
-	public float cameraHeightMax = 15f;
+	public float cameraHeightMax = 20f;
 	[Header("Player")]
 	public float rotationSpeed = 270f; // in deg/s.
 	public float translationSpeed = 10f; // in m/s.
 	public float runFactor = 2f;
 	public float airFactor = 0.4f;
 	public float jumpHeight = 2.5f;
-	public bool stickToGround = true;
+	[Range(0f, 1f)]
+	public float stickToGround = 1f;
 	public float animationSpeedScale = 0.2f;
 	public float rotAnimationSpeedScale = 0.01f;
 	//public bool animationUseGroundSpeed = true;
@@ -110,7 +113,7 @@ public class Player : MonoBehaviour
 
 	void OnEnable()
 	{
-		if(_animator != null)
+		if (_animator != null)
 		{
 			_animator.enabled = true;
 		}
@@ -124,7 +127,7 @@ public class Player : MonoBehaviour
 		}
 	}
 
-	void Update ()
+	void Update()
 	{
 		float dt = Time.deltaTime;
 		float gravity = Physics.gravity.y;
@@ -140,7 +143,7 @@ public class Player : MonoBehaviour
 			_cameraPitch = -Input.GetAxis(MOUSE_Y);
 
 			// Mouse wheel controls camera Distance/Height
-			float mouseWheel = -Input.GetAxis(MOUSE_SW);
+			float mouseWheel = -Input.GetAxis(MOUSE_SW) * mouseWheelSpeed;
 			_cameraLocalPos = cameraTransform.localPosition;
 			// Adjust camera Distance
 			float distance = Mathf.Clamp(Mathf.Abs(_cameraLocalPos.z) + mouseWheel, cameraDistanceMin, cameraDistanceMax);
@@ -154,20 +157,9 @@ public class Player : MonoBehaviour
 			_yaw = rotationSpeed * Input.GetAxis(H_AXIS);
 		}
 
-		// V1
-		//_angle = 0.0f;
-		//if (Input.GetKey(KeyCode.RightArrow))
-		//{
-		//	_angle = rotationSpeed;
-		//}
-		//else if (Input.GetKey(KeyCode.LeftArrow))
-		//{
-		//	_angle = -rotationSpeed;
-		//}
-
 		// Translation
 		_move = Vector3.zero;
-		if(useMouse)
+		if (useMouse)
 		{
 			// strafe
 			_move.Set(Input.GetAxis(H_AXIS), 0f, Input.GetAxis(V_AXIS));
@@ -180,16 +172,6 @@ public class Player : MonoBehaviour
 			_move.Set(0f, 0f, translationSpeed * Input.GetAxis(V_AXIS));  // Apply speed directly to Z direction
 		}
 
-		// V1
-		//if (Input.GetKey(KeyCode.UpArrow))
-		//{
-		//	_move.Set(0.0f, 0.0f, speed);
-		//}
-		//else if (Input.GetKey(KeyCode.DownArrow))
-		//{
-		//	_move.Set(0.0f, 0.0f, -speed);
-		//}
-
 		// Run : accelerate translation.
 		_isRunning = Input.GetButton(RUN);
 		if (_isRunning)
@@ -198,7 +180,7 @@ public class Player : MonoBehaviour
 		}
 
 		// Slows down translation & rotation while jumping.
-		if(_isJumping)
+		if (_isJumping)
 		{
 			_move *= airFactor;
 			_yaw *= airFactor;
@@ -206,7 +188,7 @@ public class Player : MonoBehaviour
 		}
 
 		// APPLY MOTION
-		if(useMouse)
+		if (useMouse)
 		{
 			// Player Yaw
 			_transform.Rotate(Vector3.up, _yaw, Space.Self);
@@ -218,21 +200,14 @@ public class Player : MonoBehaviour
 		else
 		{
 			_transform.Rotate(Vector3.up, _yaw * dt, Space.Self);
-			//_transform.rotation *= Quaternion.Euler(0f, _yaw * dt, 0f); // Do the same
-			//_transform.Rotate(_transform.up, _yaw * dt, Space.World); // Do the same
-			//_transform.Rotate(_transform.InverseTransformDirection(_transform.up), _yaw * dt, Space.Self); // Do the same
 		}
-		_controller.Move(_transform.rotation * _move * dt);
-		//_transform.Translate(_move * dt, Space.Self);
 
 		// APPLY JUMP & GRAVITY
 		if (_isGrounded)
 		{
-			if(!stickToGround)
-			{
-				_velocity.y = 0f;
-			}
-			
+			_velocity.y = Mathf.Lerp(0f, _velocity.y, stickToGround);
+
+			// Land
 			if (_isJumping)
 			{
 				if (_animator != null)
@@ -242,24 +217,21 @@ public class Player : MonoBehaviour
 				_isJumping = false;
 				_footsteps.PlayLand();
 			}
-			else
+			// Takeoff
+			if (Input.GetButtonDown(JUMP))
 			{
-				if (Input.GetButtonDown(JUMP))
+				if (_animator != null)
 				{
-					if (_animator != null)
-					{
-						_animator.SetBool(JUMP, true);
-					}
-					_isJumping = true;
-					// TODO : explain this.
-					_velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-					//Debug.Log("Jump");
-					_footsteps.PlayJump();
+					_animator.SetBool(JUMP, true);
 				}
+				_isJumping = true;
+				_velocity.y = Mathf.Sqrt(-2f * gravity * jumpHeight);
+				//Debug.Log("Jump");
+				_footsteps.PlayJump();
 			}
 		}
 		_velocity.y += gravity * dt;
-		_controller.Move(_velocity * dt);
+		_controller.Move(_velocity * dt + _transform.rotation * _move * dt);
 
 		// COMPUTE SPEEDS
 		TranslationSpeed = _ComputeGroundSpeed(_transform.position, dt);
@@ -271,7 +243,7 @@ public class Player : MonoBehaviour
 		if (move)
 		{
 			speed = Mathf.Max(TranslationSpeed * animationSpeedScale, RotationSpeed * rotAnimationSpeedScale);
-			if(translate)
+			if (translate)
 			{
 				// FOOTSTEPS (CapsulePlayer Only)
 				_footsteps.UpdateSlidingFootStep(speed);
@@ -281,7 +253,7 @@ public class Player : MonoBehaviour
 		// ANIMATE
 		if (_animator != null)
 		{
-			_animator.SetBool(MOVE, move);	
+			_animator.SetBool(MOVE, move);
 			_animator.speed = speed; //Mathf.Lerp(_animator.speed, speed, 0.5f);
 		}
 
@@ -289,6 +261,8 @@ public class Player : MonoBehaviour
 		_trails[0].emitting = _trails[1].emitting = _isJumping || (_isGrounded && _isRunning);
 
 		//Debug.Log("Is Grounded : " + _isGrounded);
+		//Debug.Log("Is Jumping : " + _isJumping);
+		//Debug.Log("Is Falling : " + IsFalling);
 		//Debug.Log("Animator speed : " + _animator.speed);
 	}
 

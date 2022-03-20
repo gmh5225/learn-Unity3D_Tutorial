@@ -67,13 +67,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   useMouse: 1
+  mouseWheelSpeed: 10
   cameraTransform: {fileID: 401718}
   cameraPitchMin: -17
   cameraPitchMax: 23
   cameraDistanceMin: 10
-  cameraDistanceMax: 30
+  cameraDistanceMax: 40
   cameraHeightMin: 6
-  cameraHeightMax: 15
+  cameraHeightMax: 20
   rotationSpeed: 270
   translationSpeed: 10
   runFactor: 2
