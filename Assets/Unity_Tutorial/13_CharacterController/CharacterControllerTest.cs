@@ -18,8 +18,6 @@
 
 #define CC_CORRECTION
 
-using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class CharacterControllerTest : MonoBehaviour
@@ -43,8 +41,8 @@ public class CharacterControllerTest : MonoBehaviour
 	// Exercise 7: Allow the character to jump using the Space key.
 	//			   Create a variable "jumpHeight" to set the character's maximum jump height.
 	//			   Compute vertical velocity using the "jumpHeight" variable and kinematics equation : Vf² = Vi² + 2*a*h
-	// Exercise 8: Cancel the jump movement when the Space key is released.
-	// Exercise 9: Horizontal kinematic trajectory of the jump movement should continue after takeoff (=inertia).
+	// Exercise 8: Cancel the jump movement when the Space key is released before the end of the takeoff phase.
+	// Exercise 9: Horizontal kinematic trajectory of the jump movement should continue after takeoff.
 	//			   Use the translation speed at the moment of the jump as initial ground velocity.
 	//			   Now you should :
 	//			   - control the character using velocity only
@@ -53,17 +51,20 @@ public class CharacterControllerTest : MonoBehaviour
 	//              Create a variable "airControl" to apply a gain to the translation.
 	//              Create a variable "airAngularControl" to apply a gain to the rotation.
 	// Exercise 11: Allow the character to move using either a keyboard or a Gamepad
-	//			   https://docs.unity3d.com/Manual/class-InputManager.html
-	// Exercise 12: Allow the use of a Mouse to control character yaw rotation and the Camera pitch.
+	//			    https://docs.unity3d.com/Manual/class-InputManager.html
+	// Exercise 12: Allow the character to push gameObjects with rigidbody components.
+	//				https://docs.unity3d.com/ScriptReference/MonoBehaviour.OnControllerColliderHit.html
+	//				You should enable interpolation on rigidbodies for a better physics simulation.
+	// Exercise 13: Allow the use of a Mouse to control character yaw rotation and the Camera pitch.
 	//				- Mouse Y axis => control camera pitch : constraint pitch values to a comfortable range for the gameplay
 	//				- Mouse X axis => control character yaw : constraint yaw values to a comfortable range for the gameplay
 	//				The yaw rotation should be controllable also with the second stick of a gamepad
 	//				Create a variable "cameraControl" to enable/disable the control of the camera.
-	// Exercise 13: Also the mouse cursor to disappear when "cameraControl" is true, and to appear when "cameraControl" is false.
+	// Exercise 14: Also the mouse cursor to disappear when "cameraControl" is true, and to appear when "cameraControl" is false.
 	//				Don't need to check "cameraControl" every frames : find the most suitable Monobehaviour method to put this code.
-	// Exercise 14: When "cameraControl" is true, the character can also make lateral movements (along X axis)
+	// Exercise 15: When "cameraControl" is true, the character can also make lateral movements (along X axis)
 	//				When "cameraControl" is false, the character can only make forward/backward movements (along Z axis)
-	// Exercise 15: Allow the use of the scrollwheel to control camera distance from character
+	// Exercise 16: Allow the use of the scrollwheel to control camera distance from character
 	//				- constraint camera.position.z to a comfortable range for the gameplay
 	//		        - constraint camera.position.y to a comfortable range for the gameplay
 	//				Camera distance should be also controllable with a gamepad
@@ -132,17 +133,25 @@ public class CharacterControllerTest : MonoBehaviour
 	public float airControl = 0.01f;
 	[Tooltip("multipler applied to the control of character's rotation while the character is in the air")]
 	public float airAngularControl = 0.4f;
-	[Tooltip("The mass of the object to interact with others RigidBodies")]
+	[Tooltip("The mass of the character (to interact with others rigid bodies)")]
 	public float mass = 10f;
-	[Tooltip("Allow to push RigidBodies below the character controller")]
+	[Tooltip("Allow to push others rigid bodies below the character controller")]
 	public bool pushObjectsBelow = false;
 
 	private Transform _transform;
 	private CharacterController _cc;
-	private Vector3 _velocity = Vector3.zero;
+	private bool _isGrounded = false;
 	private bool _isJumping = false;
-	private float _jumpVerticalSpeed = 0f;
+	private float _jumpSpeed = 0f;
+	private Vector3 _velocity = Vector3.zero;
+	private Vector3 _xzMove = Vector3.zero;
+	private float _xzMoveSpeed = 0f;
+	private float _xzMoveMaxSpeed = 0f;
+	private float _xzMoveBrakeSpeed = 0f;
+	private float _yaw = 0f;
+	private float _yawSpeed = 0f;
 
+	// Exercise 12 : Called every time the CharacterController hit another collider.
 	private void OnControllerColliderHit(ControllerColliderHit hit)
 	{
 		//Debug.Log("OnControllerColliderHit : " + hit.gameObject.name);
@@ -185,40 +194,79 @@ public class CharacterControllerTest : MonoBehaviour
 			Destroy(collider);
 		}
 		_cc = gameObject.AddComponent<CharacterController>();
+		_cc.skinWidth = _cc.radius * 0.1f; // recommended
 	}
 
 	private void _CC_Update()
 	{
-		float gravity = Physics.gravity.y;
 		float dt = Time.deltaTime;
-		bool isGrounded = _cc.isGrounded;
+		_isGrounded = _cc.isGrounded;
 
-		// Exercise 11 : use of Input.GetAxis() & Input.GetButton(), instead of Input.GetKey().
-		// GET ROTATION
-		float yawAngularSpeed = Input.GetAxisRaw("Horizontal") * rotationSpeed;
+		_Inputs();
+		_VerticalMove(dt);
+		_FinalMove(dt);
+	}
 
-		// GET TRANSLATION
-		float maxGroundSpeed = translationSpeed;
-		float zSpeed = Input.GetAxisRaw("Vertical");
+	private void _Inputs()
+	{
+		// Speeds
+		_yawSpeed = rotationSpeed;
+		_xzMoveMaxSpeed = translationSpeed;
 		if (Input.GetButton("Run"))
 		{
-			maxGroundSpeed *= runFactor;
+			_xzMoveMaxSpeed *= runFactor;
 		}
-		zSpeed *= maxGroundSpeed;
+		_xzMoveSpeed = _xzMoveMaxSpeed;
 
-		// JUMP & GRAVITY
-		float minFallSpeed = gravity * 0.1f; // value when stickToGround = 0. gravity * dt is not enough for the CharacterController.isGrounded to be accurate.
-		float maxFallSpeed = gravity; // value when stickToGround = 1
-		float brakeSpeed = 0f;
-		if (isGrounded)
+		if (_isGrounded)
 		{
-			// Exercise 5: Make the character always stick to the ground. 
+			_xzMoveBrakeSpeed = groundFriction * translationSpeed;
+		}
+		else
+		{
+			_xzMoveBrakeSpeed = 0f;
+			// Exercise 10 : character is less controllable.
+			_yawSpeed *= airAngularControl;
+			_xzMoveSpeed *= airControl;
+		}
+
+		// Exercise 11 : use of Input.GetAxis() & Input.GetButton(), instead of Input.GetKey().
+		// Rotation
+		_yaw = Input.GetAxisRaw("Horizontal");
+
+		// Translation
+		float zMove = Input.GetAxisRaw("Vertical");
+		_xzMove = _transform.forward * zMove;
+		// strafe: + _transform.right * xMove
+		// TODO : _xzMove.magnitude max => _xzMoveSpeed
+	}
+
+	private void _VerticalMove(float pDt)
+	{
+		// JUMP & GRAVITY
+		float gravity = Physics.gravity.y;
+		float fallSpeed = gravity * pDt; // Normal fall speed caused by gravity.
+		float minFallSpeed = gravity * 0.1f; // value when stickToGround = 0 (gravity * dt : not enough for CharacterController.isGrounded to be accurate in all situations).
+		float maxFallSpeed = gravity; // value when stickToGround = 1
+
+		// Exercise 8 : jump movement is cancelled if the Jump button is released while jumpHeight is not reached (_velocity.y > 0f).
+		if (_isJumping && (_velocity.y > 0f) && Input.GetButtonUp("Jump"))
+		{
+			// To cancel the jump movement, we apply more fall speed.
+			// if vertical speed > 0 (=jump height not reached) => apply normal fall speed
+			// if vertical speed == _jumpVerticalSpeed (=on the ground just before takeoff) => apply max fall speed
+			// Linearly interpolates between the 2 values to apply more "fall speed" when close to the ground, and less "fall speed" while maintaining the jump button pressed.
+			fallSpeed = -Mathf.Lerp(-fallSpeed, -maxFallSpeed, _velocity.y / _jumpSpeed);
+			//Debug.Log("Jump cancelled");
+		}
+
+		if (_isGrounded)
+		{
+			// Exercise 5: Make the character always stick to the ground (not too much)
 			//_velocity.y = -Mathf.Clamp(-_velocity.y, -minFallSpeed, -maxFallSpeed);
 
 			// Exercise 6: Make the character more or less stick to the ground.
 			_velocity.y = -Mathf.Lerp(-minFallSpeed, -maxFallSpeed, stickToGround);
-			// breakAmount when grounded.
-			brakeSpeed = groundFriction * translationSpeed;
 
 			if (_isJumping)
 			{
@@ -232,74 +280,56 @@ public class CharacterControllerTest : MonoBehaviour
 				// => 0 = Vi² + 2*a*h
 				// => Vi² = -2*a*h
 				// => Vi = sqrt(-2*a*h)
+				_jumpSpeed = Mathf.Sqrt(-2f * gravity * jumpHeight);
 				// Exercise 7 : use only vertical velocity as initial velocity
-				_jumpVerticalSpeed = Mathf.Sqrt(-2f * gravity * jumpHeight);
-				//_velocity = Vector3.up * _jumpVerticalSpeed;
+				//_velocity = Vector3.up * _jumpSpeed;
 
-				// Exercise 9 : use ground + vertical velocities as initial velocity
-				_velocity = _transform.forward * zSpeed + Vector3.up * _jumpVerticalSpeed;
+				// Exercise 9 : use move + vertical velocities as initial velocity
+				_velocity = _xzMove * _xzMoveSpeed + Vector3.up * _jumpSpeed;
 				_isJumping = true;
 				//Debug.Log("Jump");
 			}
 		}
-		// Normal fall speed caused by gravity.
-		float fallSpeed = gravity * dt;
-		if (_isJumping)
+		else
 		{
-			// Exercise 8 : jump movement is cancelled if the Jump button is released while maxHeight is not reached (_velocity.y > 0f).
-			if ((_velocity.y > 0f) && Input.GetButtonUp("Jump"))
-			{
-				// To cancel the jump movement, we apply a fall velocity.
-				// if vertical speed > 0 (=max height not reached) => apply normal fall speed
-				// if vertical speed == _jumpVerticalSpeed (=on the ground just before takeoff) => apply max fall speed
-				// Linearly interpolates between the 2 values to apply more "fall speed" when close to the ground, and less "fall speed" while maintaining the jump button pressed.
-				fallSpeed = -Mathf.Lerp(-fallSpeed, -maxFallSpeed, _velocity.y / _jumpVerticalSpeed);
-				//Debug.Log("Jump cancelled");
-			}
-		}
-		// When character is in the air
-		if (!isGrounded)
-		{
-			// Exercise 5 : add gravity.
+			// Exercise 5 : add gravity when character is in the air.
 			_velocity.y += fallSpeed;
-			// Exercise 10 : character is less controllable.
-			yawAngularSpeed *= airAngularControl;
-			zSpeed *= airControl;
 		}
+	}
 
+	private void _FinalMove(float pDt)
+	{
 		// APPLY ROTATION
-		_transform.Rotate(0f, yawAngularSpeed * dt, 0f);
+		_transform.Rotate(0f, _yaw * _yawSpeed * pDt, 0f);
 
 		// APPLY TRANSLATION
-		Vector3 groundVelocity = _transform.forward * zSpeed;
 		// Exercise 9 : Control ground velocity
-		float y = _velocity.y; // store y velocity
-		_velocity.y = 0f; // ground velocity is in X/Z plane only.
-						  // Add ground velocity to the current velocity.
-		_velocity += groundVelocity;
-		float groundSpeed = _velocity.magnitude;
+		Vector3 xzMoveVelocity = _xzMove * _xzMoveSpeed;
+		Vector3 groundVelocity = _velocity + xzMoveVelocity; // Add move velocity to the current velocity.
+		groundVelocity.y = 0f; // ground velocity is in X/Z plane only.
+		float groundSpeed = groundVelocity.magnitude;
 		// Slowdown & Clamp the new ground velocity only if > 0
 		// Otherwise this operation is useless + it will generate an error (_velocity / 0f).
 		if (groundSpeed > 0f)
 		{
 			// Normalize ground velocity + multiply by the new speed which is:
 			// - slowdowned with brakeSpeed
-			// - clamped in [0; maxSpeed]
-			_velocity = _velocity / groundSpeed * Mathf.Clamp(groundSpeed - brakeSpeed, 0f, maxGroundSpeed);
+			// - clamped in [0; maxMoveSpeed]
+			groundVelocity = groundVelocity / groundSpeed * Mathf.Clamp(groundSpeed - _xzMoveBrakeSpeed, 0f, _xzMoveMaxSpeed);
 		}
-		// reset y velocity after working on ground velocity only (X/Z).
-		_velocity.y = y;
-		_cc.Move(_velocity * dt);
+		// reset y velocity after working on ground velocity only.
+		_velocity.Set(groundVelocity.x, _velocity.y, groundVelocity.z);
+		_cc.Move(_velocity * pDt);
 		// Exercise 4 :
 		//_cc.Move(_velocity * dt + _transform.forward * zSpeed * dt);
 
 #if UNITY_EDITOR
 		// Debug.
 		Debug.DrawRay(_transform.position, _velocity, Color.red);
-		Debug.DrawRay(_transform.position, groundVelocity, Color.green);
+		Debug.DrawRay(_transform.position, xzMoveVelocity, Color.green);
 		//Debug.Log("Is Grounded : " + isGrounded);
 		//Debug.Log("Velocity : " + _velocity);
-		//Debug.Log("Ground Velocity : " + groundVelocity);
+		//Debug.Log("Move Velocity : " + moveVelocity);
 #endif
 	}
 #endif
