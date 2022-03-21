@@ -28,22 +28,29 @@ public class CharacterControllerTest : MonoBehaviour
 	public float translationSpeed = 8f; // in m/s
 	public float rotationSpeed = 120f; // in deg/s
 
-	// Exercise 1: Make the main camera follow the character continuously.
+	// Exercise 1: Make the main camera follow the character continuously (parenting)
 	// Exercise 2: Make the character moving using keys Z(or W)/S/Q(or A)/D instead of arrow keys.
+	//			   You can create 4 variables of type "KeyCode" to set your keys from the UnityEditor.
 	// Exercise 3: Allow the character to run using the Left Shift Key.
-	//			   Create a variable "runFactor" to speed up the character's translation when running.
+	//			   Create a variable "runFactor" to speed up the character's translation when the key is pressed.
+	//			   You can also create a KeyCode variable to define the run key from the UnityEditor.
 	// Exercise 4: Allow the character to move on any terrain topologies with holes and slopes.
 	//			   https://docs.unity3d.com/Manual/class-CharacterController.html
-	// Exercise 5: Make the character always stick to the ground : you need to apply some gravity.
+	//			   When using a CharacterController, you should remove any previously existing collider.
+	// Exercise 5: The character can now step up/down slopes automatically thanks to the CharacterController component.
+	//			   But there is a problem : it keeps the same height while moving horizontally and not colliding with anything.
+	//			   Make the character always stick to the ground : you need to apply some gravity.
 	//             Be careful to not apply gravity infinitely while the character is grounded.
 	// Exercise 6: Make the character more or less stick to the ground.
-	//			   Create a variable "stickToGround".
+	//			   Create a variable "stickToGround" to apply more or less gravity while the character is grounded.
 	// Exercise 7: Allow the character to jump using the Space key.
+	//			   You can also create a KeyCode variable to define the jump key from the UnityEditor.
 	//			   Create a variable "jumpHeight" to set the character's maximum jump height.
-	//			   Compute vertical velocity using the "jumpHeight" variable and kinematics equation : Vf² = Vi² + 2*a*h
-	// Exercise 8: Cancel the jump movement when the Space key is released before the end of the takeoff phase.
+	//			   Compute the vertical velocity required to jump at a desired jump height using kinematic equation : Vf² = Vi² + 2*acceleration*height
+	//			   https://www.physicsclassroom.com/class/1DKin/Lesson-6/Kinematic-Equations
+	// Exercise 8: Cancel the jump movement when the Space key is released before the end of the jump's takeoff phase.
 	// Exercise 9: Horizontal kinematic trajectory of the jump movement should continue after takeoff.
-	//			   Use the translation speed at the moment of the jump as initial ground velocity.
+	//			   Use the translation speed at the moment of the jump as initial horizontal velocity.
 	//			   Now you should :
 	//			   - control the character using velocity only
 	//			   - slow down the horizontal velocity continuously while grounded : you can create a variable "brakeForce" for this purpose.
@@ -52,19 +59,19 @@ public class CharacterControllerTest : MonoBehaviour
 	//              Create a variable "airAngularControl" to apply a gain to the rotation.
 	// Exercise 11: Allow the character to move using either a keyboard or a Gamepad
 	//			    https://docs.unity3d.com/Manual/class-InputManager.html
-	// Exercise 12: Allow the character to push gameObjects with rigidbody components.
+	// Exercise 12: Allow the character to push gameObjects having rigidbody components.
 	//				https://docs.unity3d.com/ScriptReference/MonoBehaviour.OnControllerColliderHit.html
 	//				You should enable interpolation on rigidbodies for a better physics simulation.
-	// Exercise 13: Allow the use of a Mouse to control character yaw rotation and the Camera pitch.
+	// Exercise 13: Allow the use of a Mouse to control character's yaw rotation and the Camera pitch.
 	//				- Mouse Y axis => control camera pitch : constraint pitch values to a comfortable range for the gameplay
 	//				- Mouse X axis => control character yaw : constraint yaw values to a comfortable range for the gameplay
 	//				The yaw rotation should be controllable also with the second stick of a gamepad
 	//				Create a variable "cameraControl" to enable/disable the control of the camera.
-	// Exercise 14: Also the mouse cursor to disappear when "cameraControl" is true, and to appear when "cameraControl" is false.
-	//				Don't need to check "cameraControl" every frames : find the most suitable Monobehaviour method to put this code.
-	// Exercise 15: When "cameraControl" is true, the character can also make lateral movements (along X axis)
+	// Exercise 14: Allow the mouse cursor to disappear when "cameraControl" is true, and to appear when "cameraControl" is false.
+	//				Don't need to check "cameraControl" every frame : find the most suitable MonoBehaviour method to put this code.
+	// Exercise 15: When "cameraControl" is true, the character can make full horizontal movements (along X and Z axis)
 	//				When "cameraControl" is false, the character can only make forward/backward movements (along Z axis)
-	// Exercise 16: Allow the use of the scrollwheel to control camera distance from character
+	// Exercise 16: Allow the use of the scrollwheel to control camera distance from the character
 	//				- constraint camera.position.z to a comfortable range for the gameplay
 	//		        - constraint camera.position.y to a comfortable range for the gameplay
 	//				Camera distance should be also controllable with a gamepad
@@ -198,6 +205,7 @@ public class CharacterControllerTest : MonoBehaviour
 	private void _CC_Update()
 	{
 		float dt = Time.deltaTime;
+		// Check if the character is grounded (=standing on a surface, not in the air)
 		_isGrounded = _cc.isGrounded;
 
 		_Inputs();
@@ -206,7 +214,9 @@ public class CharacterControllerTest : MonoBehaviour
 
 #if UNITY_EDITOR
 		// Debug.
+		// Draw a vector in the Scene View to debug the vertical velocity
 		Debug.DrawRay(_transform.position, _velocity, Color.red);
+		// Draw a vector in the Scene View to debug the horizontal move velocity
 		Debug.DrawRay(_transform.position, _xzMoveVelocity, Color.green);
 		//Debug.Log("Is Grounded : " + _isGrounded);
 		//Debug.Log("Velocity : " + _velocity);
@@ -256,22 +266,14 @@ public class CharacterControllerTest : MonoBehaviour
 		float fallSpeed = gravity * pDt; // Normal fall speed caused by gravity.
 		float minFallSpeed = gravity * 0.1f; // value when stickToGround = 0 (gravity * dt : not enough for CharacterController.isGrounded to be accurate in all situations).
 		float maxFallSpeed = gravity; // value when stickToGround = 1
-
-		// Exercise 8 : jump movement is cancelled if the Jump button is released while jumpHeight is not reached (_velocity.y > 0f).
-		if (_isJumping && (_velocity.y > 0f) && Input.GetButtonUp("Jump"))
-		{
-			// To cancel the jump movement, we apply more fall speed.
-			// if vertical speed > 0 (=jump height not reached) => apply normal fall speed
-			// if vertical speed == _jumpVerticalSpeed (=on the ground just before takeoff) => apply max fall speed
-			// Linearly interpolates between the 2 values to apply more "fall speed" when close to the ground, and less "fall speed" while maintaining the jump button pressed.
-			fallSpeed = -Mathf.Lerp(-fallSpeed, -maxFallSpeed, _velocity.y / _jumpSpeed);
-			//Debug.Log("Jump cancelled");
-		}
-
 		if (_isGrounded)
 		{
-			// Exercise 5: Make the character always stick to the ground (not too much)
-			//_velocity.y = -Mathf.Clamp(-_velocity.y, -minFallSpeed, -maxFallSpeed);
+			// Exercise 5: 
+			// Apply the same vertical velocity when the character is grounded, in order to:
+			// - stop accumulating vertical velocity : we don't need to fall, we are grounded.
+			// - stick to the ground
+			//_velocity.y = gravity.y; // this value correspond to a velocity accumulated during 1s.
+			// It is an arbitrary value but it makes the feeling the character is really sticking to the ground.
 
 			// Exercise 6: Make the character more or less stick to the ground.
 			_velocity.y = -Mathf.Lerp(-minFallSpeed, -maxFallSpeed, stickToGround);
@@ -300,8 +302,20 @@ public class CharacterControllerTest : MonoBehaviour
 		}
 		else
 		{
-			// Exercise 5 : add gravity when character is in the air.
-			_velocity.y += fallSpeed;
+			// Exercise 8 : jump movement is cancelled if the Jump button is released while jumpHeight is not reached (_velocity.y > 0f).
+			if (_isJumping && (_velocity.y > 0f) && Input.GetButtonUp("Jump"))
+			{
+				// To cancel the jump movement, we apply more fall speed.
+				// if vertical speed > 0 (=jump height not reached) => apply normal fall speed
+				// if vertical speed == _jumpVerticalSpeed (=on the ground just before takeoff) => apply max fall speed
+				// Linearly interpolates between the 2 values to apply more "fall speed" when close to the ground, and less "fall speed" while maintaining the jump button pressed.
+				fallSpeed = -Mathf.Lerp(-fallSpeed, -maxFallSpeed, _velocity.y / _jumpSpeed);
+				//Debug.Log("Jump cancelled");
+			}
+
+			// Exercise 5 :
+			// When character is in the air, it needs to fall thanks to the effect of gravity (=vertical velocity accumulation)
+			_velocity.y += fallSpeed; // gravity is acceleration : it increase the velocity every frame.
 		}
 	}
 
@@ -320,6 +334,11 @@ public class CharacterControllerTest : MonoBehaviour
 		groundVelocity = Vector3.ClampMagnitude(groundVelocity, newGroundSpeed);
 		// reset y velocity after working on ground velocity only.
 		_velocity.Set(groundVelocity.x, _velocity.y, groundVelocity.z);
+		// When using a character controller we cannot use the transform to move the character anymore.
+		// Instead we have to call the Move() method, in charge of: 
+		// - detecting collision with others objects in the environment
+		// - adapting the given movement to step up/down slopes automatically
+		// https://docs.unity3d.com/ScriptReference/CharacterController.Move.html
 		_cc.Move(_velocity * pDt);
 		// Exercise 4 :
 		//_cc.Move(_velocity * dt + _xzMoveVelocity * dt);
