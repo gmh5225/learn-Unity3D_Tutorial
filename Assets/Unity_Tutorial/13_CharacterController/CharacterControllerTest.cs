@@ -144,11 +144,9 @@ public class CharacterControllerTest : MonoBehaviour
 	private bool _isJumping = false;
 	private float _jumpSpeed = 0f;
 	private Vector3 _velocity = Vector3.zero;
-	private Vector3 _xzMove = Vector3.zero;
-	private float _xzMoveSpeed = 0f;
+	private Vector3 _xzMoveVelocity = Vector3.zero;
 	private float _xzMoveMaxSpeed = 0f;
 	private float _xzMoveBrakeSpeed = 0f;
-	private float _yaw = 0f;
 	private float _yawSpeed = 0f;
 
 	// Exercise 12 : Called every time the CharacterController hit another collider.
@@ -205,18 +203,27 @@ public class CharacterControllerTest : MonoBehaviour
 		_Inputs();
 		_VerticalMove(dt);
 		_FinalMove(dt);
+
+#if UNITY_EDITOR
+		// Debug.
+		Debug.DrawRay(_transform.position, _velocity, Color.red);
+		Debug.DrawRay(_transform.position, _xzMoveVelocity, Color.green);
+		//Debug.Log("Is Grounded : " + _isGrounded);
+		//Debug.Log("Velocity : " + _velocity);
+		//Debug.Log("Move Velocity : " + _xzMoveVelocity);
+#endif
 	}
 
 	private void _Inputs()
 	{
 		// Speeds
-		_yawSpeed = rotationSpeed;
+		float yawSpeed = rotationSpeed;
 		_xzMoveMaxSpeed = translationSpeed;
 		if (Input.GetButton("Run"))
 		{
 			_xzMoveMaxSpeed *= runFactor;
 		}
-		_xzMoveSpeed = _xzMoveMaxSpeed;
+		float xzMoveSpeed = _xzMoveMaxSpeed;
 
 		if (_isGrounded)
 		{
@@ -226,19 +233,20 @@ public class CharacterControllerTest : MonoBehaviour
 		{
 			_xzMoveBrakeSpeed = 0f;
 			// Exercise 10 : character is less controllable.
-			_yawSpeed *= airAngularControl;
-			_xzMoveSpeed *= airControl;
+			yawSpeed *= airAngularControl;
+			xzMoveSpeed *= airControl;
 		}
 
 		// Exercise 11 : use of Input.GetAxis() & Input.GetButton(), instead of Input.GetKey().
 		// Rotation
-		_yaw = Input.GetAxisRaw("Horizontal");
+		_yawSpeed = Input.GetAxisRaw("Horizontal") * yawSpeed;
 
 		// Translation
 		float zMove = Input.GetAxisRaw("Vertical");
-		_xzMove = _transform.forward * zMove;
-		// strafe: + _transform.right * xMove
-		// TODO : _xzMove.magnitude max => _xzMoveSpeed
+		_xzMoveVelocity = _transform.forward * zMove * xzMoveSpeed;
+		// TODO strafe:
+		// _xzVelocity = _transform.forward * zMove + _transform.right * xMove
+		//_xzMoveVelocity = Vector3.ClampMagnitude(_xzMoveVelocity * xzMoveSpeed, xzMoveSpeed);
 	}
 
 	private void _VerticalMove(float pDt)
@@ -285,7 +293,7 @@ public class CharacterControllerTest : MonoBehaviour
 				//_velocity = Vector3.up * _jumpSpeed;
 
 				// Exercise 9 : use move + vertical velocities as initial velocity
-				_velocity = _xzMove * _xzMoveSpeed + Vector3.up * _jumpSpeed;
+				_velocity = _xzMoveVelocity + Vector3.up * _jumpSpeed;
 				_isJumping = true;
 				//Debug.Log("Jump");
 			}
@@ -300,37 +308,21 @@ public class CharacterControllerTest : MonoBehaviour
 	private void _FinalMove(float pDt)
 	{
 		// APPLY ROTATION
-		_transform.Rotate(0f, _yaw * _yawSpeed * pDt, 0f);
+		_transform.Rotate(0f, _yawSpeed * pDt, 0f);
 
 		// APPLY TRANSLATION
 		// Exercise 9 : Control ground velocity
-		Vector3 xzMoveVelocity = _xzMove * _xzMoveSpeed;
-		Vector3 groundVelocity = _velocity + xzMoveVelocity; // Add move velocity to the current velocity.
+		Vector3 groundVelocity = _velocity + _xzMoveVelocity; // Add move velocity to the current velocity.
 		groundVelocity.y = 0f; // ground velocity is in X/Z plane only.
 		float groundSpeed = groundVelocity.magnitude;
-		// Slowdown & Clamp the new ground velocity only if > 0
-		// Otherwise this operation is useless + it will generate an error (_velocity / 0f).
-		if (groundSpeed > 0f)
-		{
-			// Normalize ground velocity + multiply by the new speed which is:
-			// - slowdowned with brakeSpeed
-			// - clamped in [0; maxMoveSpeed]
-			groundVelocity = groundVelocity / groundSpeed * Mathf.Clamp(groundSpeed - _xzMoveBrakeSpeed, 0f, _xzMoveMaxSpeed);
-		}
+		// Slowdown & Clamp the new ground velocity
+		float newGroundSpeed = Mathf.Clamp(groundSpeed - _xzMoveBrakeSpeed, 0f, _xzMoveMaxSpeed);
+		groundVelocity = Vector3.ClampMagnitude(groundVelocity, newGroundSpeed);
 		// reset y velocity after working on ground velocity only.
 		_velocity.Set(groundVelocity.x, _velocity.y, groundVelocity.z);
 		_cc.Move(_velocity * pDt);
 		// Exercise 4 :
-		//_cc.Move(_velocity * dt + _transform.forward * zSpeed * dt);
-
-#if UNITY_EDITOR
-		// Debug.
-		Debug.DrawRay(_transform.position, _velocity, Color.red);
-		Debug.DrawRay(_transform.position, xzMoveVelocity, Color.green);
-		//Debug.Log("Is Grounded : " + isGrounded);
-		//Debug.Log("Velocity : " + _velocity);
-		//Debug.Log("Move Velocity : " + moveVelocity);
-#endif
+		//_cc.Move(_velocity * dt + _xzMoveVelocity * dt);
 	}
 #endif
 }
