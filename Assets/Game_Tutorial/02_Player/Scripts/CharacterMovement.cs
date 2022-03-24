@@ -43,6 +43,7 @@ public class CharacterMovement : MonoBehaviour
 	//				Be careful to not apply gravity infinitely while the character is grounded.
 	// Exercise 06: Make the character more or less stick to the ground.
 	//				Create a float variable "stickToGround" to apply more or less gravity while the character is grounded.
+	//				Restrict the range of values of "stickToGround" to [0.1f ; 1f]
 	// Exercise 07: Allow the character to jump using the Space key.
 	//				You can also create a KeyCode variable "jumpKey" to define the jump key from the UnityEditor.
 	//				Create a float variable "jumpHeight" to set the character's maximum jump height.
