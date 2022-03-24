@@ -16,7 +16,7 @@
 * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.							  *
 ******************************************************************************************************************************************************/
 
-#define CM_CORRECTION
+#define CHAR_CORRECTION
 
 using UnityEngine;
 
@@ -54,10 +54,10 @@ public class CharacterMovement : MonoBehaviour
 	//				Now you should :
 	//				- control the character using velocity only
 	//				- slow down the horizontal velocity continuously while grounded : you can create a variable "brakeForce" for this purpose.
-	// Exercise 10: Slow down the movement of the character while in the air.
+	// Exercise 10: Slow down the horizontal movements of the character while it is in the air.
 	//              Create a variable "airControl" to apply a gain to the translation speed.
 	//              Create a variable "airAngularControl" to apply a gain to the rotation speed.
-	// Exercise 11: Allow the character to move using either a keyboard or a Gamepad
+	// Exercise 11: Allow the character to move (translation, run, jump) using either a keyboard or a Gamepad
 	//			    https://docs.unity3d.com/Manual/class-InputManager.html
 	// Exercise 12: Allow the character to push gameObjects having rigidbody components.
 	//				https://docs.unity3d.com/ScriptReference/MonoBehaviour.OnControllerColliderHit.html
@@ -68,9 +68,10 @@ public class CharacterMovement : MonoBehaviour
 	//				Add a boolean variable "strafe" to enable/disable this functionality.
 	//				- if strafe is true : translation in left & right directions is allowed, and yaw rotation is not allowed
 	//				- if strafe is false : translation in left & right directions is not allowed, and yaw rotation is allowed
+	// Exercise 14: Create string constants on the top of the script to replace easily all Axis & Buttons used in your code.
 	void Update()
 	{
-#if CM_CORRECTION
+#if CHAR_CORRECTION
 		_CC_Update();
 #else
 		_Update();
@@ -118,7 +119,13 @@ public class CharacterMovement : MonoBehaviour
 		//transform.position = pos;
 	}
 
-#if CM_CORRECTION
+#if CHAR_CORRECTION
+	// Exercise 14:
+	public const string H_AXIS = "Horizontal";
+	public const string V_AXIS = "Vertical";
+	public const string RUN_BUTTON = "Run";
+	public const string JUMP_BUTTON = "Jump";
+
 	[Tooltip("Allow translation in left & right directions")]
 	public bool strafe = false;
 	[Tooltip("translationSpeed multiplier")]
@@ -151,6 +158,9 @@ public class CharacterMovement : MonoBehaviour
 	private float _xzMoveBrakeSpeed = 0f;
 	private float _yawSpeed = 0f;
 
+	// CameraMovement - Exercise 02
+	public bool IsGrounded { get { return _isGrounded; } }
+
 	// Exercise 12 : Called every time the CharacterController hit another collider.
 	private void OnControllerColliderHit(ControllerColliderHit hit)
 	{
@@ -178,11 +188,11 @@ public class CharacterMovement : MonoBehaviour
 		// calling transform directly is like doing GetComponent<Transform>() which is costly.
 		// Better to cache the transform reference in the script.
 		_transform = transform;
-		// Exercise 01:
-		Transform cameraTransform = Camera.main.transform; // This is also costly (== GameObject.FindGameObjectWithTag("MainCamera").transform)
-		cameraTransform.parent = _transform; // As a child of this transform, the camera movement is following automatically this transform.
-		cameraTransform.localPosition = new Vector3(0f, 4f, -10f); // Set the camera a little higher than the character, and a little behind.
-		cameraTransform.localEulerAngles = new Vector3(15f, 0f, 0f); // Pitch the camera a little towards the ground.
+		// Exercise 01: Can be done direclty in Unity Editor
+		//Transform cameraTransform = Camera.main.transform; // This is also costly (== GameObject.FindGameObjectWithTag("MainCamera").transform)
+		//cameraTransform.parent = _transform; // As a child of this transform, the camera movement is following automatically this transform.
+		//cameraTransform.localPosition = new Vector3(0f, 4f, -10f); // Set the camera a little higher than the character, and a little behind.
+		//cameraTransform.localEulerAngles = new Vector3(15f, 0f, 0f); // Pitch the camera a little towards the ground.
 
 		// Excercise 04:
 		// Add a CharacterController, but first destroy any existing Collider
@@ -221,9 +231,9 @@ public class CharacterMovement : MonoBehaviour
 	private void _Inputs()
 	{
 		// Speeds
-		float yawSpeed = rotationSpeed;
+		float yawMaxSpeed = rotationSpeed;
 		_xzMoveMaxSpeed = translationSpeed;
-		if (Input.GetButton("Run"))
+		if (Input.GetButton(RUN_BUTTON))
 		{
 			_xzMoveMaxSpeed *= runFactor;
 		}
@@ -237,14 +247,14 @@ public class CharacterMovement : MonoBehaviour
 		else
 		{
 			_xzMoveBrakeSpeed = 0f; // no slow down due to ground friction in the air.
-			// Exercise 10 : character is less controllable in the air.
-			yawSpeed *= airAngularControl;
+									// Exercise 10 : character is less controllable in the air.
+			yawMaxSpeed *= airAngularControl;
 			xzMoveSpeed *= airControl;
 		}
 
 		// Exercise 11 : use of Input.GetAxis() & Input.GetButton(), instead of Input.GetKey().
-		float xMove = Input.GetAxisRaw("Horizontal");
-		float zMove = Input.GetAxisRaw("Vertical");
+		float xMove = Input.GetAxisRaw(H_AXIS);
+		float zMove = Input.GetAxisRaw(V_AXIS);
 		// Exercise 13 : strafe
 		if (strafe)
 		{
@@ -257,7 +267,7 @@ public class CharacterMovement : MonoBehaviour
 		else
 		{
 			// Rotation
-			_yawSpeed = xMove * yawSpeed;
+			_yawSpeed = xMove * yawMaxSpeed;
 			// Translation in Z only
 			_xzMoveVelocity = _transform.forward * zMove * xzMoveSpeed;
 		}
@@ -286,7 +296,7 @@ public class CharacterMovement : MonoBehaviour
 				_isJumping = false;
 			}
 
-			if (Input.GetButtonDown("Jump"))
+			if (Input.GetButtonDown(JUMP_BUTTON))
 			{
 				// Kinematic equation : Vf² = Vi² + 2*a*h
 				// When max height (h) is reached : Vf is 0
@@ -307,7 +317,7 @@ public class CharacterMovement : MonoBehaviour
 		{
 			float fallSpeed = gravity * pDt; // Normal fall speed caused by gravity.
 			// Exercise 08 : jump movement is cancelled if the Jump button is released while jumpHeight is not reached (_velocity.y > 0f).
-			if (_isJumping && (_velocity.y > 0f) && Input.GetButtonUp("Jump"))
+			if (_isJumping && (_velocity.y > 0f) && Input.GetButtonUp(JUMP_BUTTON))
 			{
 				// To cancel the jump movement, we apply more fall speed.
 				// if vertical speed > 0 (=jump height not reached) => apply normal fall speed
