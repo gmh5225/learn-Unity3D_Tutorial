@@ -34,9 +34,12 @@ public class CameraMovement : MonoBehaviour
 	//				Use the characterMovement.airAngularControl to adjust the yaw rotation speed.
 	// Exercise 05: Where can we put the code to update CameraMovement to be sure it will always take into account the latest character's state ?
 	//				https://docs.unity3d.com/ScriptReference/MonoBehaviour.LateUpdate.html
-	// Exercise 06: What problem do you have when camera's pitch > 90f or < -90f ?
+	// Exercise 06: - What problem do you have when camera's pitch > 90f or < -90f ?
 	//				What can you do to tackle this issue ?
 	//				Constraint pitch values to a comfortable range for the gameplay.
+	//				- What problems do you have when clamping euler angle values ?
+	//				Log the pitch value before and after clamping
+	//				- What can we do to properly clamp euler angle values ?
 	// Exercise 07: - If the script is enabled : the mouse cursor should disappear & be locked to the center of the screen + characterMovement.strafe should be true
 	//				- If the script is disabled : the mouse cursor should appear & be unlocked + characterMovement.strafe should be false
 	//				https://docs.unity3d.com/ScriptReference/Cursor.html
