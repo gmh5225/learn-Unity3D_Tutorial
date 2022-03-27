@@ -99,13 +99,15 @@ public class CameraMovement : MonoBehaviour
 		transform.parent = characterMovement.transform; // As a child of this transform, the camera movement is following automatically this transform.
 		transform.localPosition = new Vector3(0f, 4f, -10f); // Set the camera a little higher than the character, and a little behind.
 		transform.localEulerAngles = new Vector3(15f, 0f, 0f); // Pitch the camera a little towards the ground.
-		
+
 		// Exercise 09 : Here we are sure the direction vector is not Vector3.zero.
-		// We normalize it once for all to avoid duplicate computations in Update().
-		_characterToCameraDir = transform.localPosition.normalized;
+		//_characterToCameraDir = transform.position - characterMovement.transform.position; // classic way to compute a vector between 2 positions : AB = B-A
+		_characterToCameraDir = transform.localPosition; // shorter way using B.localPosition, because A is the parent of B.
+		// We normalize the direction vector once for all to avoid duplicate computations in Update().
+		_characterToCameraDir.Normalize();
 	}
 
-	// Execute after Character movements
+	// Exercise 05 : Execute after Character movements
 	private void LateUpdate()
 	{
 		// Exercise 02:
