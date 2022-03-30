@@ -26,13 +26,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 877877354}
-  m_LocalRotation: {x: 0.14647153, y: -0, z: -0, w: 0.9892149}
-  m_LocalPosition: {x: 0, y: 4.779504, z: -10.8995285}
+  m_LocalRotation: {x: 0.13052616, y: 0, z: 0, w: 0.9914449}
+  m_LocalPosition: {x: 0, y: 4, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 5267152776787815220}
   m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 16.845001, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 15, y: 0, z: 0}
 --- !u!20 &877877356
 Camera:
   m_ObjectHideFlags: 0
@@ -99,8 +99,8 @@ MonoBehaviour:
   characterMovement: {fileID: 4011489671131469436}
   yawSpeed: 1
   pitchSpeed: 1
-  pitchMin: -17
-  pitchMax: 23
+  minPitch: -30
+  maxPitch: 30
   mouseWheelSpeed: 10
   minDistance: 10
   maxDistance: 40
@@ -115,9 +115,8 @@ GameObject:
   - component: {fileID: 5267152776787815220}
   - component: {fileID: 5267152776787815221}
   - component: {fileID: 5267152776787815222}
-  - component: {fileID: 1756207316}
   - component: {fileID: 4011489671131469436}
-  - component: {fileID: 1156318175}
+  - component: {fileID: 6997685052540015019}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -188,20 +187,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!136 &1756207316
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5267152776787815216}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  m_Radius: 0.5
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &4011489671131469436
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -214,31 +199,35 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 67d89e5f897508e4da84617a94645127, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  translationSpeed: 8
   rotationSpeed: 120
-  strafe: 1
+  translationSpeed: 8
   runFactor: 2
   stickToGround: 0.5
-  groundFriction: 0.5
   jumpHeight: 2
+  groundFriction: 0.5
   airControl: 0.01
-  airAngularControl: 0.4
-  mass: 10
+  airAngularControl: 0.2
+  mass: 2
   pushObjectsBelow: 0
---- !u!114 &1156318175
-MonoBehaviour:
+  strafe: 1
+--- !u!143 &6997685052540015019
+CharacterController:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5267152776787815216}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
   m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 582d6cf5fea6cf74aa8b97a2833e88b3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  characterMovement: {fileID: 4011489671131469436}
-  cameraMovement: {fileID: 877877358}
+  serializedVersion: 2
+  m_Height: 2
+  m_Radius: 0.5
+  m_SlopeLimit: 70
+  m_StepOffset: 0.3
+  m_SkinWidth: 0.05
+  m_MinMoveDistance: 0.001
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &5267152777883171104
 GameObject:
   m_ObjectHideFlags: 0

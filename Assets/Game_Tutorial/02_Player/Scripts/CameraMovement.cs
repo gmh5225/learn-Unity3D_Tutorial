@@ -65,13 +65,13 @@ public class CameraMovement : MonoBehaviour
 
 	// Exercise 01
 	public CharacterMovement characterMovement;
-	// Exercise 02
+	// Exercice 02
 	public float yawSpeed = 1f;
 	// Exercise 04
 	public float pitchSpeed = 1f;
-	// Exercise 06 Camera Pitch constrained
-	public float pitchMin = -17f;
-	public float pitchMax = 23f;
+	// Exercise 06
+	public float minPitch = -30f;
+	public float maxPitch = 30f;
 	// Exercise 09
 	public float mouseWheelSpeed = 10f;
 	// Exercise 10
@@ -81,77 +81,88 @@ public class CameraMovement : MonoBehaviour
 	// Exercise 09
 	private Vector3 _characterToCameraDir;
 
-	// Exercise 06: enabled = cursor disappear & is locked to the center of the screen + characterMovement.strafe = true
+	// Exercise 07 : enabled = cursor disappear & is locked to the center of the screen + characterMovement.strafe = true
 	private void OnEnable()
 	{
-		Cursor.lockState = CursorLockMode.Locked;
+		//Debug.Log("OnEnable");
 		Cursor.visible = false;
+		Cursor.lockState = CursorLockMode.Locked;
 		characterMovement.strafe = true;
 	}
-	// Exercise 06: disabled = cursor appear & is unlocked + characterMovement.strafe = false
+	// Exercise 07 : disabled = cursor appear & is unlocked + characterMovement.strafe = false
 	private void OnDisable()
 	{
-		Cursor.lockState = CursorLockMode.None;
+		//Debug.Log("OnDisable");
 		Cursor.visible = true;
+		Cursor.lockState = CursorLockMode.None;
 		characterMovement.strafe = false;
 	}
 
-	private void Awake()
+	private void Start()
 	{
 		// Exercise 01 : Ensure parent is character and a convenient placement of the camera is set at start.
 		transform.parent = characterMovement.transform; // As a child of this transform, the camera movement is following automatically this transform.
 		transform.localPosition = new Vector3(0f, 4f, -10f); // Set the camera a little higher than the character, and a little behind.
 		transform.localEulerAngles = new Vector3(15f, 0f, 0f); // Pitch the camera a little towards the ground.
 
-		// Exercise 09 : Here we are sure the direction vector is not Vector3.zero.
+		// Exercise 09 : thanks to the code above, we are sure the direction vector is not Vector3.zero.
 		//_characterToCameraDir = transform.position - characterMovement.transform.position; // classic way to compute a vector between 2 positions : AB = B-A
-		_characterToCameraDir = transform.localPosition; // shorter way using B.localPosition, because A is the parent of B.
-		// We normalize the direction vector once for all to avoid duplicate computations in Update().
-		_characterToCameraDir.Normalize();
+		_characterToCameraDir = transform.localPosition; // faster way using B.localPosition, because A is the parent of B.
+		_characterToCameraDir.Normalize(); // normalize the direction vector once for all to avoid duplicate computations in Update().
 	}
 
-	// Exercise 05 : Execute after Character movements
+	// Exercise 05 : Use LateUpdate() instead of Update() to be sure to execute after CharacterMovement script
 	private void LateUpdate()
 	{
-		// Exercise 02:
+		// Exercise 02
 		float yaw = Input.GetAxisRaw(MOUSE_X) * yawSpeed;
-		// Exercise 04:
+		// Exercise 04
 		float pitch = -Input.GetAxisRaw(MOUSE_Y) * pitchSpeed;
 
-		if(!characterMovement.IsGrounded)
+		// Exercise 03
+		if (!characterMovement.IsGrounded)
 		{
 			// Exercise 03: adapt yaw regarding character's grounded state
 			yaw *= characterMovement.airAngularControl;
 			// Exercise 04: adapt pitch regarding character's grounded state
 			pitch *= characterMovement.airAngularControl;
 		}
-		// Exercise 02: Character Yaw
-		characterMovement.transform.Rotate(Vector3.up, yaw, Space.Self);
+		// Exercise 02 : Character Yaw
+		characterMovement.transform.Rotate(0f, yaw, 0f, Space.Self);
+
 		// Exercise 04: Camera Pitch
-		Vector3 euler = transform.localEulerAngles;
-		//euler.x += _cameraPitch;
+		//transform.Rotate(pitch, 0f, 0f, Space.Self);
+
 		// Exercise 06: Camera Pitch constrained
-		euler.x = _ClampAngle(euler.x + pitch, pitchMin, pitchMax);
+		Vector3 euler = transform.localEulerAngles;
+		//Debug.Log("Pitch : " + euler.x);
+		euler.x = _ClampAngle(euler.x + pitch, minPitch, maxPitch);
+		//Debug.Log("Pitch clamped : " + euler.x);
 		transform.localEulerAngles = euler;
+
 		// Exercise 09: Mouse wheel controls camera Distance
 		float deltaDistance = -Input.GetAxisRaw(MOUSE_SW) * mouseWheelSpeed;
-		//transform.localPosition += _characterToCameraDir * deltaDistance;
-		// Exercise 10: Constraint camera Distance
-		float distance = transform.localPosition.magnitude;
-		float newDistance = Mathf.Clamp(distance + deltaDistance, minDistance, maxDistance);
-		transform.localPosition = _characterToCameraDir * newDistance;
+		if(deltaDistance != 0f)
+		{
+			//transform.localPosition += _characterToCameraDir * deltaDistance;
+
+			// Exercise 10: Constraint camera Distance
+			float distance = transform.localPosition.magnitude;
+			float newDistance = Mathf.Clamp(distance + deltaDistance, minDistance, maxDistance);
+			transform.localPosition = _characterToCameraDir * newDistance;
+		}
 	}
 
 	// Exercise 06
 	private float _ClampAngle(float pAngle, float pMinAngle = -180f, float pMaxAngle = 180f)
 	{
 		// Ensure angle is in [-180;180]
-		pAngle %= 360f;
-		if (pAngle > 180f)
+		float angle = pAngle % 360f;
+		if(angle > 180f)
 		{
-			pAngle -= 360f;
+			angle -= 360f;
 		}
 		// Clamp
-		return pAngle > pMaxAngle ? pMaxAngle : pAngle < pMinAngle ? pMinAngle : pAngle;
+		return Mathf.Clamp(angle, pMinAngle, pMaxAngle);
 	}
 }

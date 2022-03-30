@@ -18,21 +18,32 @@
 
 using UnityEngine;
 
-// Configure every components + speed up music
-public class Player : MonoBehaviour
+// Apply different kind of force (https://docs.unity3d.com/ScriptReference/ForceMode.html)
+// on a rigidbody and see the effect on rigidbody.velocity in the UnityEditor.
+public class AddForce : MonoBehaviour
 {
-	public CharacterMovement characterMovement;
-	public CameraMovement cameraMovement;
+	public ForceMode forceMode;
+    public Vector3 force = Vector3.right;
 
-	// Exercise 01:	Create a boolean variable "cameraControl" to enable/disable the control of the camera at Start of the application.
-	// - if "cameraControl" is true : the character should strafe + CameraMovement script should be enabled
-	// - if "cameraControl" is false : the character shouldn't strafe + CameraMovement script should be disabled
+	private Rigidbody _rb;
 
-	// Exercise 01
-	public bool cameraControl = true;
-
-	private void Start()
+	private void Awake()
 	{
-		cameraMovement.enabled = characterMovement.strafe = cameraControl;
+		_rb = GetComponent<Rigidbody>();
+		_rb.useGravity = _rb.isKinematic = false;
 	}
+
+	void Update()
+    {
+        if(Input.GetKeyDown(KeyCode.Space))
+		{
+			// Apply force
+			_rb.AddForce(force, forceMode);
+		}
+		else if(Input.GetKeyDown(KeyCode.Return))
+		{
+			// Reset position and velocity
+			_rb.position = _rb.velocity = Vector3.zero;
+		}
+    }
 }
