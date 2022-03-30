@@ -174,24 +174,24 @@ public class CharacterMovement : MonoBehaviour
 			return;
 		}
 
-		float friction = 1f;
+		float forceScale = 1f;
 		bool objectBelow = hit.moveDirection.y < -0.3f;
 		if (objectBelow)
 		{
 			if(pushObjectsBelow)
 			{
 				// Exercise 18 : Make force relative to groundFriction when pushing object below
-				friction = groundFriction;
+				forceScale = groundFriction;
 			}
 			else
 			{
-				// Exercise 18 : Pushing objects below could be not allowed
+				// Exercise 18 : Pushing objects below is not allowed
 				return;
 			}
 		}
 
 		// Push rigid body object.
-		Vector3 force = _velocity * friction * mass;
+		Vector3 force = _velocity * forceScale * mass;
 		//rb.AddForce(force, ForceMode.Force); // Apply force to the center of mass
 		//Debug.Log("[ControllerColliderHit] Force : " + force);
 
